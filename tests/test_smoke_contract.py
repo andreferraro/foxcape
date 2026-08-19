@@ -60,7 +60,8 @@ def test_contract_proxy_pool_sticky_and_round_robin() -> None:
     pool.add_proxy(foxcape.ProxyConfig(server="http://b:2"))
     rr1 = pool.get_proxy(strategy="round_robin")
     rr2 = pool.get_proxy(strategy="round_robin")
-    assert rr1 is not None and rr2 is not None
+    assert rr1 is not None
+    assert rr2 is not None
     sticky = pool.get_proxy(session_id="sess")
     assert sticky == pool.get_proxy(session_id="sess")
 

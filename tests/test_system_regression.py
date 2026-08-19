@@ -85,7 +85,10 @@ class TestPostRefactorSystemFlows:
         assert result.title == "Shop"
         assert result.status_code == 201
         assert result.select_one("h1") is not None
-        assert "noise" in calls and "hardware" in calls and "turnstile" in calls and "cadence" in calls
+        assert "noise" in calls
+        assert "hardware" in calls
+        assert "turnstile" in calls
+        assert "cadence" in calls
 
     @pytest.mark.asyncio
     async def test_async_full_feature_scrape_uses_launch_and_cadence(self, monkeypatch: pytest.MonkeyPatch) -> None:

@@ -30,7 +30,11 @@ def extract_links_from_soup(soup: BeautifulSoup, base_url: str = "") -> list[dic
         raw_href = a.get("href")
         if not raw_href:
             continue
-        href = (raw_href[0] if isinstance(raw_href, list) else raw_href).strip()
+        if isinstance(raw_href, list):
+            raw_href = raw_href[0] if raw_href else ""
+        if not isinstance(raw_href, str):
+            continue
+        href = raw_href.strip()
         if not href or href.startswith("javascript:") or href.startswith("mailto:"):
             continue
         full_url = urljoin(base_url, href) if base_url else href

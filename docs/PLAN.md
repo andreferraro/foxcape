@@ -28,8 +28,8 @@
 | **Tests** | `tests/` (see section 12) |
 | **Git remote** | `https://github.com/andreferraro/foxcape.git` |
 
-**Current state:** library lives under `src/foxcape/` with the Foxcape public API. Offline test suite (**126 tests**, ~96% coverage) green via `make check`. Live integration tests (2) pass with `pytest -m live` after `camoufox fetch`. Publish workflow file ready; PyPI Trusted Publisher and release tag pending manual steps.  
-**Remaining work:** commit/push pending local changes, PyPI Trusted Publisher (T026), GitFlow release tag `v0.1.0` (T028), reviewer sign-off on `release-gate.md` (T030).
+**Current state:** library lives under `src/foxcape/` with the Foxcape public API. Offline test suite (**181 tests**, ~99% coverage) green via `make check`. Live integration tests (2) pass with `pytest -m live` after `camoufox fetch`. Publish workflow file ready; PyPI Trusted Publisher and release tag pending manual steps.  
+**Remaining work:** PyPI Trusted Publisher (T026), GitFlow release tag `v0.1.0` (T028), reviewer sign-off on `release-gate.md` (T030).
 
 **Initial prompt (new Cursor instance in this folder):**
 
@@ -298,7 +298,7 @@ See root `pyproject.toml` for the live config (hatchling, uv dev groups, ruff, m
 
 ## 12. Tests (`tests/`)
 
-**Total:** 128 collected — **126 offline** (default CI) + **2 live** (`@pytest.mark.live`, opt-in).
+**Total:** 183 collected — **181 offline** (default CI) + **2 live** (`@pytest.mark.live`, opt-in).
 
 Default command: `pytest` (applies `-m "not live"` via `pyproject.toml`).
 
@@ -323,6 +323,10 @@ Default command: `pytest` (applies `-m "not live"` via `pyproject.toml`).
 | `test_turnstile_and_typing.py` | DONE | Human typing + Turnstile solve (mocked) |
 | `test_smoke_contract.py` | DONE | FR/SC contract tests from spec |
 | `test_edge_cases.py` | DONE | Residual branch coverage |
+| `test_system_regression.py` | DONE | Post-refactor regression (launch, cadence, profiles, turnstile) |
+| `test_scrapers.py` | DONE | Scraper/async depth, evaluate, startup cleanup |
+| `test_behavior_helpers.py` | DONE | Humanizer, cadence, launch helpers |
+| `test_parsers_and_injection.py` | DONE | Parser edge cases and init-script injection |
 | `test_integration.py` | DONE | Live example.com sync+async — **excluded from default CI** |
 
 ---
@@ -376,7 +380,7 @@ ruff + ruff-format + trailing-whitespace + end-of-file-fixer + check-yaml + chec
 
 - T015 tests/ scaffold — DONE
 - T016 Camoufox mocks — DONE (`conftest.py`, sync/async scraper tests)
-- Extended QA suite — DONE (126 offline + property tests; see section 12)
+- Extended QA suite — DONE (181 offline + property tests; see section 12)
 
 ### Phase 4 — Publish — PARTIAL
 

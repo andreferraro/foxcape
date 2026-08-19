@@ -29,9 +29,7 @@ def generate_windmouse_path(
     v_x, v_y = 0.0, 0.0
     w_x, w_y = 0.0, 0.0
 
-    dist = math.hypot(dest_x - start_x, dest_y - start_y)
-
-    while dist > 1.0:
+    while True:
         dist = math.hypot(dest_x - current_x, dest_y - current_y)
         if dist < 1.0:
             break
@@ -121,9 +119,6 @@ def perform_human_activity(page: SyncPage, max_duration_sec: float = 2.0):
             if rng.rand_float() < 0.3:
                 page.mouse.wheel(0, -scroll_delta // 2)
 
-        if (time.time() - start_time) >= max_duration_sec:
-            break
-
 
 async def async_perform_human_activity(page: AsyncPage, max_duration_sec: float = 2.0):
     """
@@ -146,6 +141,3 @@ async def async_perform_human_activity(page: AsyncPage, max_duration_sec: float 
             await asyncio.sleep(rng.uniform(0.1, 0.3))
             if rng.rand_float() < 0.3:
                 await page.mouse.wheel(0, -scroll_delta // 2)
-
-        if (time.time() - start_time) >= max_duration_sec:
-            break

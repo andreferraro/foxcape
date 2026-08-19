@@ -59,6 +59,9 @@ def human_type(
     - Key dwell time (press down -> release).
     - Natural typo generation with immediate Backspace correction.
     """
+    if wpm_speed <= 0:
+        wpm_speed = 65.0
+
     element = page.locator(selector).first
     element.click()
     time.sleep(rng.uniform(0.1, 0.3))
@@ -96,6 +99,9 @@ async def async_human_type(
     """
     Asynchronously types text with authentic human biometric rhythm.
     """
+    if wpm_speed <= 0:
+        wpm_speed = 65.0
+
     element = page.locator(selector).first
     await element.click()
     await asyncio.sleep(rng.uniform(0.1, 0.3))
@@ -207,8 +213,11 @@ def _wait_turnstile_resolution_sync(page: SyncPage, turnstile_iframe, timeout_se
     deadline = time.time() + timeout_sec
     while time.time() < deadline:
         time.sleep(0.4)
-        if _is_turnstile_resolved_sync(page, turnstile_iframe):
-            return True
+        try:
+            if _is_turnstile_resolved_sync(page, turnstile_iframe):
+                return True
+        except Exception:
+            continue
     return False
 
 
@@ -216,8 +225,11 @@ async def _wait_turnstile_resolution_async(page: AsyncPage, turnstile_iframe, ti
     deadline = time.time() + timeout_sec
     while time.time() < deadline:
         await asyncio.sleep(0.4)
-        if await _is_turnstile_resolved_async(page, turnstile_iframe):
-            return True
+        try:
+            if await _is_turnstile_resolved_async(page, turnstile_iframe):
+                return True
+        except Exception:
+            continue
     return False
 
 

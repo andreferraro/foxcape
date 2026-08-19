@@ -56,6 +56,16 @@ def test_sync_no_op_when_all_disabled() -> None:
     mock_activity.assert_not_called()
 
 
+def test_sync_markov_cadence_with_none_delay_range() -> None:
+    page = MagicMock()
+    page.content.return_value = "<html><body><p>content</p></body></html>"
+    cfg = FoxcapeConfig(use_markov_cadence=True, human_delay_range=None, simulate_mouse=True)
+    with patch("foxcape.scrape_cadence.MarkovCadence.calculate_reading_dwell_time", return_value=1.0) as mock_dwell:
+        with patch("foxcape.scrape_cadence.perform_human_activity"):
+            apply_sync_human_cadence(page, cfg, simulate_mouse=True, human_delay=True)
+    mock_dwell.assert_called_once_with(page.content(), min_seconds=0.5, max_seconds=3.0)
+
+
 @pytest.mark.asyncio
 async def test_async_markov_cadence_with_mouse() -> None:
     page = MagicMock()

@@ -35,15 +35,22 @@ class AsyncFoxcape:
         if self.browser is not None:
             return
 
+        camoufox_kwargs = build_camoufox_kwargs(self.config)
         try:
-            self._camoufox_cm = AsyncCamoufox(**build_camoufox_kwargs(self.config))
+            self._camoufox_cm = AsyncCamoufox(**camoufox_kwargs)
             self.browser = await self._camoufox_cm.__aenter__()
         except Exception as exc:
+            self._camoufox_cm = None
+            self.browser = None
             raise BrowserStartupError(CAMOUFOX_FETCH_HINT) from exc
 
-        self._page = await async_resolve_initial_page(self.browser)
-        if self._page is not None:
-            await inject_async_page_evasions(self._page, self.config)
+        try:
+            self._page = await async_resolve_initial_page(self.browser)
+            if self._page is not None:
+                await inject_async_page_evasions(self._page, self.config)
+        except Exception:
+            await self.close()
+            raise
 
     async def close(self) -> None:
         if self._page is not None:

@@ -1,10 +1,12 @@
 """Turnstile solving and human typing (mocked Playwright page)."""
 
+import math
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
 from foxcape.turnstile_and_typing import (
+    _wait_turnstile_resolution_sync,
     async_human_type,
     async_solve_turnstile_if_present,
     human_type,
@@ -48,6 +50,19 @@ def test_human_type_clicks_and_types_chars() -> None:
     element.click.assert_called_once()
     assert page.keyboard.down.call_count == 2
     assert page.keyboard.up.call_count == 2
+
+
+def test_human_type_clamps_non_positive_wpm_speed() -> None:
+    page = MagicMock()
+    page.locator.return_value.first = MagicMock()
+    page.keyboard = _mock_keyboard()
+    with patch("foxcape.turnstile_and_typing.time.sleep"):
+        with patch("foxcape.turnstile_and_typing.rng.uniform", return_value=0.05):
+            with patch("foxcape.turnstile_and_typing.rng.rand_float", return_value=0.0):
+                with patch("foxcape.turnstile_and_typing.rng.lognormvariate", return_value=0.05) as mock_lognorm:
+                    human_type(page, "#input", "a", typo_probability=0.0, wpm_speed=0.0)
+    expected_base = 60.0 / (65.0 * 5.0)
+    mock_lognorm.assert_called_with(math.log(expected_base), 0.35)
 
 
 def test_human_type_generates_typo_and_backspace() -> None:
@@ -115,6 +130,17 @@ def test_solve_turnstile_returns_false_on_exception() -> None:
     page = MagicMock()
     page.locator.side_effect = RuntimeError("broken")
     assert solve_turnstile_if_present(page) is False
+
+
+def test_turnstile_wait_continues_after_transient_poll_errors() -> None:
+    page = MagicMock()
+    iframe = MagicMock()
+    with patch(
+        "foxcape.turnstile_and_typing._is_turnstile_resolved_sync",
+        side_effect=[RuntimeError("frame detached"), True],
+    ):
+        with patch("foxcape.turnstile_and_typing.time.sleep"):
+            assert _wait_turnstile_resolution_sync(page, iframe, timeout_sec=1.0) is True
 
 
 @pytest.mark.asyncio

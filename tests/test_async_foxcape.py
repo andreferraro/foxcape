@@ -1,6 +1,6 @@
 """AsyncFoxcape lifecycle and scrape path (mocked AsyncCamoufox)."""
 
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
@@ -95,3 +95,31 @@ async def test_async_start_raises_browser_startup_error(monkeypatch: pytest.Monk
     fox = AsyncFoxcape(FoxcapeConfig(headless=True))
     with pytest.raises(BrowserStartupError, match="camoufox fetch"):
         await fox.start()
+
+
+async def test_async_start_propagates_config_errors_without_browser_startup_wrapper(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        "foxcape.async_scraper.build_camoufox_kwargs",
+        MagicMock(side_effect=ValueError("invalid proxy URL")),
+    )
+    fox = AsyncFoxcape(FoxcapeConfig(headless=True))
+    with pytest.raises(ValueError, match="invalid proxy URL"):
+        await fox.start()
+
+
+async def test_async_start_cleans_up_browser_when_page_setup_fails(
+    mock_async_camoufox: tuple, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    _, cm = mock_async_camoufox
+    monkeypatch.setattr(
+        "foxcape.async_scraper.inject_async_page_evasions",
+        AsyncMock(side_effect=RuntimeError("evasion inject failed")),
+    )
+    fox = AsyncFoxcape(FoxcapeConfig(headless=True))
+    with pytest.raises(RuntimeError, match="evasion inject failed"):
+        await fox.start()
+    cm.__aexit__.assert_awaited_once()
+    assert fox.browser is None
+    assert fox._camoufox_cm is None

@@ -35,15 +35,22 @@ class Foxcape:
         if self.browser is not None:
             return
 
+        camoufox_kwargs = build_camoufox_kwargs(self.config)
         try:
-            self._camoufox_cm = Camoufox(**build_camoufox_kwargs(self.config))
+            self._camoufox_cm = Camoufox(**camoufox_kwargs)
             self.browser = self._camoufox_cm.__enter__()
         except Exception as exc:
+            self._camoufox_cm = None
+            self.browser = None
             raise BrowserStartupError(CAMOUFOX_FETCH_HINT) from exc
 
-        self._page = resolve_initial_page(self.browser)
-        if self._page is not None:
-            inject_sync_page_evasions(self._page, self.config)
+        try:
+            self._page = resolve_initial_page(self.browser)
+            if self._page is not None:
+                inject_sync_page_evasions(self._page, self.config)
+        except Exception:
+            self.close()
+            raise
 
     def close(self) -> None:
         if self._page is not None:

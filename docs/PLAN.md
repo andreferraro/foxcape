@@ -75,7 +75,7 @@ Artifacts live **in this repo** under `specs/001-initial-release/`:
 5. /speckit-checklist     → checklists/*.md — GATE           [DONE]
 6. /speckit-tasks         → tasks.md                         [DONE]
 7. /speckit-analyze       → GATE — DO NOT code before approval [DONE — see summary below]
-8. /speckit-implement     → remaining tasks in tasks.md  [DONE — T013–T027, T029, T031]
+8. /speckit-implement     → remaining tasks in tasks.md  [DONE — T013–T025, T027, T029, T031]
 9. /speckit-converge      → test-evidence.json + v0.1.0 PyPI  [PARTIAL — evidence updated; PyPI pending T026/T028]
 ```
 

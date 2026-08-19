@@ -188,3 +188,30 @@ def test_warmup_all_failures_via_manager(mock_foxcape_cls: MagicMock, tmp_path: 
     profile = ProfileManager.get_or_create("cold", profiles_dir=tmp_path)
     assert profile.warmup(category="sports", steps=1, verbose=False) is False
     assert profile.is_warm is False
+
+
+def test_profile_merges_legacy_metadata_missing_visited_domains(tmp_path: Path) -> None:
+    profile = ProfileManager.get_or_create("legacy", profiles_dir=tmp_path)
+    profile.metadata_file.write_text(
+        '{"name": "legacy", "warmup_completed": false, "visited_urls_count": 2}',
+        encoding="utf-8",
+    )
+    reloaded = ProfileManager.get_or_create("legacy", profiles_dir=tmp_path)
+    assert reloaded.metadata["visited_domains"] == []
+    reloaded._record_warmup_visit("https://example.com/page")
+    assert "example.com" in reloaded.metadata["visited_domains"]
+
+
+@patch("foxcape.profiles.Foxcape")
+def test_warmup_failure_preserves_existing_warmth(mock_foxcape_cls: MagicMock, tmp_path: Path) -> None:
+    mock_instance = MagicMock()
+    mock_instance.__enter__ = MagicMock(return_value=mock_instance)
+    mock_instance.__exit__ = MagicMock(return_value=False)
+    mock_instance.get.side_effect = RuntimeError("network down")
+    mock_foxcape_cls.return_value = mock_instance
+
+    profile = ProfileManager.get_or_create("already_warm", profiles_dir=tmp_path)
+    profile.metadata["warmup_completed"] = True
+    profile._save_metadata()
+    assert profile.warmup(category="general", steps=1, verbose=False) is False
+    assert profile.is_warm is True

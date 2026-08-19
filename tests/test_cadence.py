@@ -36,7 +36,8 @@ def test_generate_behavioral_sequence_starts_at_scan_header() -> None:
 
 def test_generate_behavioral_sequence_can_reach_done() -> None:
     with patch("foxcape.cadence.rng.uniform", return_value=0.3):
-        with patch("foxcape.cadence.rng.choices", return_value=["DONE"]):
+        with patch("foxcape.cadence.rng.choices", side_effect=[["PREPARE_NEXT"], ["DONE"]]):
             sequence = MarkovCadence.generate_behavioral_sequence(max_steps=5)
     states = [state for state, _ in sequence]
-    assert "DONE" not in states or len(sequence) <= 5
+    assert states == ["SCAN_HEADER", "PREPARE_NEXT"]
+    assert len(sequence) <= 5

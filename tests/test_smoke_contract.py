@@ -1,5 +1,6 @@
 """Smoke and contract tests aligned with specs/001-initial-release/spec.md."""
 
+from pathlib import Path
 from unittest.mock import patch
 
 import foxcape
@@ -64,9 +65,9 @@ def test_contract_proxy_pool_sticky_and_round_robin() -> None:
     assert sticky == pool.get_proxy(session_id="sess")
 
 
-def test_contract_profile_to_config_sets_persistence() -> None:
+def test_contract_profile_to_config_sets_persistence(tmp_path: Path) -> None:
     """FR-008: profile converts to FoxcapeConfig with user_data_dir."""
-    profile = foxcape.ProfileManager.get_or_create("_contract_profile")
+    profile = foxcape.ProfileManager.get_or_create("_contract_profile", profiles_dir=tmp_path)
     cfg = profile.to_foxcape_config()
     assert cfg.user_data_dir == profile.profile_dir
     assert cfg.persistent_context is True

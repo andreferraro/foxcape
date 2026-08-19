@@ -51,23 +51,33 @@ class BrowserProfile:
             except Exception:
                 pass
 
-    def _load_metadata(self) -> dict:
-        if self.metadata_file.exists():
-            try:
-                with open(self.metadata_file, encoding="utf-8") as f:
-                    return json.load(f)
-            except Exception:
-                pass
-
-        default_meta = {
+    def _default_metadata(self) -> dict:
+        now = datetime.now().isoformat()
+        return {
             "name": self.name,
-            "created_at": datetime.now().isoformat(),
-            "last_used_at": datetime.now().isoformat(),
+            "created_at": now,
+            "last_used_at": now,
             "visited_urls_count": 0,
             "warmup_completed": False,
             "warmup_category": None,
             "visited_domains": [],
         }
+
+    def _load_metadata(self) -> dict:
+        default_meta = self._default_metadata()
+        if self.metadata_file.exists():
+            try:
+                with open(self.metadata_file, encoding="utf-8") as f:
+                    loaded = json.load(f)
+                if isinstance(loaded, dict):
+                    merged = {**default_meta, **loaded}
+                    merged["name"] = self.name
+                    if not isinstance(merged.get("visited_domains"), list):
+                        merged["visited_domains"] = []
+                    return merged
+            except Exception:
+                pass
+
         self._save_metadata(default_meta)
         return default_meta
 
@@ -169,7 +179,7 @@ class BrowserProfile:
                         print(f"[!] [Warmup {i}/{len(selected_urls)}] Warning: failed to visit {url}: {e}", flush=True)
 
         warmed = successes > 0
-        self.metadata["warmup_completed"] = warmed
+        self.metadata["warmup_completed"] = warmed or self.is_warm
         self.metadata["warmup_category"] = category
         self.metadata["last_used_at"] = datetime.now().isoformat()
         self._save_metadata()

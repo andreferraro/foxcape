@@ -50,7 +50,7 @@ with Foxcape(config) as fox:
 ### Browser profiles
 
 ```python
-from foxcape import ProfileManager
+from foxcape import Foxcape, ProfileManager
 
 profile = ProfileManager.get_or_create("my_stealth_profile")
 config = profile.to_foxcape_config()
@@ -64,8 +64,8 @@ with Foxcape(config) as fox:
 ```bash
 make install          # uv sync --all-groups
 make check            # format + lint + mypy + offline pytest (126 tests)
-pytest -m live        # optional: 2 live tests; requires camoufox fetch + network
-pytest tests/test_humanizer_properties.py -v --hypothesis-show-statistics
+uv run pytest -m live # optional: 2 live tests; requires camoufox fetch + network
+uv run pytest tests/test_humanizer_properties.py -v --hypothesis-show-statistics
 ```
 
 Offline suite: **126 tests**, ~**96%** coverage on `src/foxcape/`. Live integration tests are excluded from CI and default pytest.

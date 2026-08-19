@@ -1,5 +1,7 @@
 """Public API surface and import hygiene."""
 
+import importlib
+from pathlib import Path
 from unittest.mock import patch
 
 import foxcape
@@ -46,15 +48,17 @@ def test_proxy_pool_strategies() -> None:
     assert sticky == pool.get_proxy(session_id="sess-1")
 
 
-def test_profile_manager() -> None:
-    assert ProfileManager.get_or_create("_test_profile_unit")
+def test_profile_manager(tmp_path: Path) -> None:
+    assert ProfileManager.get_or_create("_test_profile_unit", profiles_dir=tmp_path)
 
 
-@patch("foxcape.scraper.Camoufox")
-def test_import_does_not_start_browser(mock_camoufox) -> None:
+@patch("camoufox.async_api.AsyncCamoufox")
+@patch("camoufox.sync_api.Camoufox")
+def test_import_does_not_start_browser(mock_sync_camoufox, mock_async_camoufox) -> None:
     """Importing foxcape must not launch Camoufox."""
-    assert foxcape.__version__ == "0.1.0"
-    mock_camoufox.assert_not_called()
+    importlib.reload(foxcape)
+    mock_sync_camoufox.assert_not_called()
+    mock_async_camoufox.assert_not_called()
 
 
 def test_empty_proxy_pool_returns_none() -> None:

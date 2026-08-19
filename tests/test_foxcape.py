@@ -41,6 +41,30 @@ def test_start_raises_browser_startup_error_when_camoufox_unavailable(monkeypatc
         fox.start()
 
 
+def test_start_propagates_config_errors_without_browser_startup_wrapper(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(
+        "foxcape.scraper.build_camoufox_kwargs",
+        MagicMock(side_effect=ValueError("invalid proxy URL")),
+    )
+    fox = Foxcape(FoxcapeConfig(headless=True))
+    with pytest.raises(ValueError, match="invalid proxy URL"):
+        fox.start()
+
+
+def test_start_cleans_up_browser_when_page_setup_fails(mock_camoufox: tuple, monkeypatch: pytest.MonkeyPatch) -> None:
+    _, cm = mock_camoufox
+    monkeypatch.setattr(
+        "foxcape.scraper.inject_sync_page_evasions",
+        MagicMock(side_effect=RuntimeError("evasion inject failed")),
+    )
+    fox = Foxcape(FoxcapeConfig(headless=True))
+    with pytest.raises(RuntimeError, match="evasion inject failed"):
+        fox.start()
+    cm.__exit__.assert_called_once()
+    assert fox.browser is None
+    assert fox._camoufox_cm is None
+
+
 def test_start_is_idempotent(mock_camoufox: tuple) -> None:
     _, cm = mock_camoufox
     fox = Foxcape(FoxcapeConfig(headless=True))

@@ -24,8 +24,8 @@ def build_camoufox_kwargs(config: FoxcapeConfig) -> dict[str, Any]:
 
     if config.disable_coop:
         kwargs["disable_coop"] = True
-        if config.i_know_what_im_doing:
-            kwargs["i_know_what_im_doing"] = True
+    if config.i_know_what_im_doing:
+        kwargs["i_know_what_im_doing"] = True
 
     for key, value in (
         ("geoip_db", config.geoip_db),

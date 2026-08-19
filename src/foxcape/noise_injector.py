@@ -1,4 +1,4 @@
-import random
+import secrets
 
 from playwright.async_api import Page as AsyncPage
 from playwright.sync_api import Page as SyncPage
@@ -10,7 +10,7 @@ def get_canvas_and_audio_noise_script(seed: int | float | None = None) -> str:
     It injects minute sub-pixel noise into HTML5 Canvas and subtle frequency jitter into Web Audio API,
     randomizing per-session fingerprint hashes without breaking visual or audio output.
     """
-    active_seed = seed if seed is not None else random.randint(1000, 999999)
+    active_seed = seed if seed is not None else 1000 + secrets.randbelow(999000)
 
     return f"""
     (() => {{

@@ -73,7 +73,7 @@ See [specs/001-initial-release/contracts/public-api.md](../specs/001-initial-rel
 
 ## Test suite (offline)
 
-126 offline tests + 2 live integration tests (`test_integration.py`). Coverage ~96% on `src/foxcape/` (see `specs/001-initial-release/test-evidence.json`).
+181 offline tests + 2 live integration tests (`test_integration.py`). Coverage ~99% on `src/foxcape/` (see `specs/001-initial-release/test-evidence.json`).
 
 Categories: unit (parsers, proxy, cadence), mocked integration (sync/async scraper, turnstile, profiles), contract/smoke, Hypothesis property tests (`test_humanizer_properties.py`).
 

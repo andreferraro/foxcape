@@ -67,7 +67,7 @@ class MarkovCadence:
             sequence.append((current_state, duration))
 
             options = cls.TRANSITIONS.get(current_state, [("DONE", 1.0)])
-            choices, weights = zip(*options)
+            choices, weights = zip(*options, strict=True)
             current_state = rng.choices(choices, weights=weights)[0]
 
         return sequence

@@ -63,12 +63,12 @@ with Foxcape(config) as fox:
 
 ```bash
 make install          # uv sync --all-groups
-make check            # format + lint + mypy + offline pytest (126 tests)
+make check            # format + lint + mypy + offline pytest (181 tests)
 uv run pytest -m live # optional: 2 live tests; requires camoufox fetch + network
 uv run pytest tests/test_humanizer_properties.py -v --hypothesis-show-statistics
 ```
 
-Offline suite: **126 tests**, ~**96%** coverage on `src/foxcape/`. Live integration tests are excluded from CI and default pytest.
+Offline suite: **181 tests**, ~**99%** coverage on `src/foxcape/`. Live integration tests are excluded from CI and default pytest.
 
 ## Publishing
 

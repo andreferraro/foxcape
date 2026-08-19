@@ -1,12 +1,20 @@
 import asyncio
 import math
-import random
 import time
 
 from playwright.async_api import Page as AsyncPage
 from playwright.sync_api import Page as SyncPage
 
+from . import rng
 from .humanizer import generate_windmouse_path
+
+CF_TURNSTILE_RESPONSE_SELECTOR = 'input[name="cf-turnstile-response"]'
+CF_TURNSTILE_IFRAME_SELECTORS = (
+    'iframe[src*="challenges.cloudflare.com"]',
+    'iframe[src*="turnstile"]',
+    "#turnstile-wrapper iframe",
+    "#cf-turnstile-wrapper iframe",
+)
 
 KEYBOARD_NEIGHBORS = {
     "a": ["q", "w", "s", "z"],
@@ -38,6 +46,12 @@ KEYBOARD_NEIGHBORS = {
 }
 
 
+def _normalize_wpm_speed(wpm_speed: float) -> float:
+    if not math.isfinite(wpm_speed) or wpm_speed <= 0:
+        return 65.0
+    return wpm_speed
+
+
 def human_type(
     page: SyncPage,
     selector: str,
@@ -51,30 +65,32 @@ def human_type(
     - Key dwell time (press down -> release).
     - Natural typo generation with immediate Backspace correction.
     """
+    wpm_speed = _normalize_wpm_speed(wpm_speed)
+
     element = page.locator(selector).first
     element.click()
-    time.sleep(random.uniform(0.1, 0.3))
+    time.sleep(rng.uniform(0.1, 0.3))
 
     base_delay = 60.0 / (wpm_speed * 5.0)
 
     for char in text:
         lower_char = char.lower()
-        if typo_probability > 0 and lower_char in KEYBOARD_NEIGHBORS and random.random() < typo_probability:
-            typo_char = random.choice(KEYBOARD_NEIGHBORS[lower_char])
+        if typo_probability > 0 and lower_char in KEYBOARD_NEIGHBORS and rng.rand_float() < typo_probability:
+            typo_char = rng.choice(KEYBOARD_NEIGHBORS[lower_char])
             if char.isupper():
                 typo_char = typo_char.upper()
 
             page.keyboard.press(typo_char)
-            time.sleep(random.uniform(0.08, 0.25))
+            time.sleep(rng.uniform(0.08, 0.25))
             page.keyboard.press("Backspace")
-            time.sleep(random.uniform(0.06, 0.18))
+            time.sleep(rng.uniform(0.06, 0.18))
 
-        dwell_ms = random.uniform(40, 110) / 1000.0
+        dwell_ms = rng.uniform(40, 110) / 1000.0
         page.keyboard.down(char)
         time.sleep(dwell_ms)
         page.keyboard.up(char)
 
-        flight_delay = random.lognormvariate(math.log(base_delay), 0.35)
+        flight_delay = rng.lognormvariate(math.log(base_delay), 0.35)
         time.sleep(max(0.03, min(0.4, flight_delay)))
 
 
@@ -88,31 +104,137 @@ async def async_human_type(
     """
     Asynchronously types text with authentic human biometric rhythm.
     """
+    wpm_speed = _normalize_wpm_speed(wpm_speed)
+
     element = page.locator(selector).first
     await element.click()
-    await asyncio.sleep(random.uniform(0.1, 0.3))
+    await asyncio.sleep(rng.uniform(0.1, 0.3))
 
     base_delay = 60.0 / (wpm_speed * 5.0)
 
     for char in text:
         lower_char = char.lower()
-        if typo_probability > 0 and lower_char in KEYBOARD_NEIGHBORS and random.random() < typo_probability:
-            typo_char = random.choice(KEYBOARD_NEIGHBORS[lower_char])
+        if typo_probability > 0 and lower_char in KEYBOARD_NEIGHBORS and rng.rand_float() < typo_probability:
+            typo_char = rng.choice(KEYBOARD_NEIGHBORS[lower_char])
             if char.isupper():
                 typo_char = typo_char.upper()
 
             await page.keyboard.press(typo_char)
-            await asyncio.sleep(random.uniform(0.08, 0.25))
+            await asyncio.sleep(rng.uniform(0.08, 0.25))
             await page.keyboard.press("Backspace")
-            await asyncio.sleep(random.uniform(0.06, 0.18))
+            await asyncio.sleep(rng.uniform(0.06, 0.18))
 
-        dwell_ms = random.uniform(40, 110) / 1000.0
+        dwell_ms = rng.uniform(40, 110) / 1000.0
         await page.keyboard.down(char)
         await asyncio.sleep(dwell_ms)
         await page.keyboard.up(char)
 
-        flight_delay = random.lognormvariate(math.log(base_delay), 0.35)
+        flight_delay = rng.lognormvariate(math.log(base_delay), 0.35)
         await asyncio.sleep(max(0.03, min(0.4, flight_delay)))
+
+
+def _find_turnstile_iframe_sync(page: SyncPage):
+    for sel in CF_TURNSTILE_IFRAME_SELECTORS:
+        loc = page.locator(sel).first
+        try:
+            if loc.count() > 0 and loc.is_visible(timeout=400):
+                return loc
+        except Exception:
+            continue
+    return None
+
+
+async def _find_turnstile_iframe_async(page: AsyncPage):
+    for sel in CF_TURNSTILE_IFRAME_SELECTORS:
+        loc = page.locator(sel).first
+        try:
+            if await loc.count() > 0 and await loc.is_visible(timeout=400):
+                return loc
+        except Exception:
+            continue
+    return None
+
+
+def _click_turnstile_target_sync(page: SyncPage, box: dict) -> None:
+    target_x = box["x"] + min(35.0, box["width"] / 2.0)
+    target_y = box["y"] + (box["height"] / 2.0)
+    vp = page.viewport_size or {"width": 1280, "height": 800}
+    path = generate_windmouse_path(
+        start_x=rng.uniform(100, vp["width"] - 100),
+        start_y=rng.uniform(100, vp["height"] - 100),
+        dest_x=target_x,
+        dest_y=target_y,
+    )
+    for x, y, delay in path:
+        page.mouse.move(x, y)
+        if delay > 0:
+            time.sleep(delay)
+    time.sleep(rng.uniform(0.1, 0.25))
+    page.mouse.down()
+    time.sleep(rng.uniform(0.06, 0.12))
+    page.mouse.up()
+
+
+async def _click_turnstile_target_async(page: AsyncPage, box: dict) -> None:
+    target_x = box["x"] + min(35.0, box["width"] / 2.0)
+    target_y = box["y"] + (box["height"] / 2.0)
+    vp = page.viewport_size or {"width": 1280, "height": 800}
+    path = generate_windmouse_path(
+        start_x=rng.uniform(100, vp["width"] - 100),
+        start_y=rng.uniform(100, vp["height"] - 100),
+        dest_x=target_x,
+        dest_y=target_y,
+    )
+    for x, y, delay in path:
+        await page.mouse.move(x, y)
+        if delay > 0:
+            await asyncio.sleep(delay)
+    await asyncio.sleep(rng.uniform(0.1, 0.25))
+    await page.mouse.down()
+    await asyncio.sleep(rng.uniform(0.06, 0.12))
+    await page.mouse.up()
+
+
+def _is_turnstile_resolved_sync(page: SyncPage, turnstile_iframe) -> bool:
+    token_locator = page.locator(CF_TURNSTILE_RESPONSE_SELECTOR)
+    if token_locator.count() > 0:
+        token_val = token_locator.first.input_value(timeout=300)
+        if token_val:
+            return True
+    return not turnstile_iframe.is_visible(timeout=300)
+
+
+async def _is_turnstile_resolved_async(page: AsyncPage, turnstile_iframe) -> bool:
+    token_locator = page.locator(CF_TURNSTILE_RESPONSE_SELECTOR)
+    if await token_locator.count() > 0:
+        token_val = await token_locator.first.input_value(timeout=300)
+        if token_val:
+            return True
+    return not await turnstile_iframe.is_visible(timeout=300)
+
+
+def _wait_turnstile_resolution_sync(page: SyncPage, turnstile_iframe, timeout_sec: float) -> bool:
+    deadline = time.time() + timeout_sec
+    while time.time() < deadline:
+        time.sleep(0.4)
+        try:
+            if _is_turnstile_resolved_sync(page, turnstile_iframe):
+                return True
+        except Exception:
+            continue
+    return False
+
+
+async def _wait_turnstile_resolution_async(page: AsyncPage, turnstile_iframe, timeout_sec: float) -> bool:
+    deadline = time.time() + timeout_sec
+    while time.time() < deadline:
+        await asyncio.sleep(0.4)
+        try:
+            if await _is_turnstile_resolved_async(page, turnstile_iframe):
+                return True
+        except Exception:
+            continue
+    return False
 
 
 def solve_turnstile_if_present(page: SyncPage, timeout_sec: float = 5.0) -> bool:
@@ -121,23 +243,7 @@ def solve_turnstile_if_present(page: SyncPage, timeout_sec: float = 5.0) -> bool
     If present, moves mouse organically with WindMouse and clicks.
     """
     try:
-        cf_selectors = [
-            'iframe[src*="challenges.cloudflare.com"]',
-            'iframe[src*="turnstile"]',
-            "#turnstile-wrapper iframe",
-            "#cf-turnstile-wrapper iframe",
-        ]
-
-        turnstile_iframe = None
-        for sel in cf_selectors:
-            loc = page.locator(sel).first
-            try:
-                if loc.count() > 0 and loc.is_visible(timeout=400):
-                    turnstile_iframe = loc
-                    break
-            except Exception:
-                continue
-
+        turnstile_iframe = _find_turnstile_iframe_sync(page)
         if not turnstile_iframe:
             return False
 
@@ -145,38 +251,8 @@ def solve_turnstile_if_present(page: SyncPage, timeout_sec: float = 5.0) -> bool
         if not box:
             return False
 
-        target_x = box["x"] + min(35.0, box["width"] / 2.0)
-        target_y = box["y"] + (box["height"] / 2.0)
-
-        vp = page.viewport_size or {"width": 1280, "height": 800}
-        path = generate_windmouse_path(
-            start_x=random.uniform(100, vp["width"] - 100),
-            start_y=random.uniform(100, vp["height"] - 100),
-            dest_x=target_x,
-            dest_y=target_y,
-        )
-        for x, y, delay in path:
-            page.mouse.move(x, y)
-            if delay > 0:
-                time.sleep(delay)
-
-        time.sleep(random.uniform(0.1, 0.25))
-        page.mouse.down()
-        time.sleep(random.uniform(0.06, 0.12))
-        page.mouse.up()
-
-        t0 = time.time()
-        while time.time() - t0 < timeout_sec:
-            time.sleep(0.4)
-            token_count = page.locator('input[name="cf-turnstile-response"]').count()
-            if token_count > 0:
-                token_val = page.locator('input[name="cf-turnstile-response"]').first.input_value(timeout=300)
-                if token_val:
-                    return True
-            if not turnstile_iframe.is_visible(timeout=300):
-                return True
-
-        return True
+        _click_turnstile_target_sync(page, box)
+        return _wait_turnstile_resolution_sync(page, turnstile_iframe, timeout_sec)
     except Exception:
         return False
 
@@ -186,23 +262,7 @@ async def async_solve_turnstile_if_present(page: AsyncPage, timeout_sec: float =
     Non-blocking async detection of Cloudflare Turnstile / Challenge iframes.
     """
     try:
-        cf_selectors = [
-            'iframe[src*="challenges.cloudflare.com"]',
-            'iframe[src*="turnstile"]',
-            "#turnstile-wrapper iframe",
-            "#cf-turnstile-wrapper iframe",
-        ]
-
-        turnstile_iframe = None
-        for sel in cf_selectors:
-            loc = page.locator(sel).first
-            try:
-                if await loc.count() > 0 and await loc.is_visible(timeout=400):
-                    turnstile_iframe = loc
-                    break
-            except Exception:
-                continue
-
+        turnstile_iframe = await _find_turnstile_iframe_async(page)
         if not turnstile_iframe:
             return False
 
@@ -210,37 +270,7 @@ async def async_solve_turnstile_if_present(page: AsyncPage, timeout_sec: float =
         if not box:
             return False
 
-        target_x = box["x"] + min(35.0, box["width"] / 2.0)
-        target_y = box["y"] + (box["height"] / 2.0)
-
-        vp = page.viewport_size or {"width": 1280, "height": 800}
-        path = generate_windmouse_path(
-            start_x=random.uniform(100, vp["width"] - 100),
-            start_y=random.uniform(100, vp["height"] - 100),
-            dest_x=target_x,
-            dest_y=target_y,
-        )
-        for x, y, delay in path:
-            await page.mouse.move(x, y)
-            if delay > 0:
-                await asyncio.sleep(delay)
-
-        await asyncio.sleep(random.uniform(0.1, 0.25))
-        await page.mouse.down()
-        await asyncio.sleep(random.uniform(0.06, 0.12))
-        await page.mouse.up()
-
-        t0 = time.time()
-        while time.time() - t0 < timeout_sec:
-            await asyncio.sleep(0.4)
-            token_count = await page.locator('input[name="cf-turnstile-response"]').count()
-            if token_count > 0:
-                token_val = await page.locator('input[name="cf-turnstile-response"]').first.input_value(timeout=300)
-                if token_val:
-                    return True
-            if not await turnstile_iframe.is_visible(timeout=300):
-                return True
-
-        return True
+        await _click_turnstile_target_async(page, box)
+        return await _wait_turnstile_resolution_async(page, turnstile_iframe, timeout_sec)
     except Exception:
         return False

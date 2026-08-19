@@ -84,7 +84,13 @@ print("Scenario 5 OK")
 make check
 ```
 
-Expected: ruff, mypy, pytest (7+ tests) all pass without network.
+Expected: ruff, mypy, and **126 offline pytest** cases pass without network or Camoufox fetch.
+
+Optional live validation:
+
+```bash
+pytest -m live   # 2 integration tests against example.com
+```
 
 ## Responsible use
 

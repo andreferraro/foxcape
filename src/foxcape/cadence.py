@@ -1,6 +1,6 @@
-import random
-
 from bs4 import BeautifulSoup
+
+from . import rng
 
 
 class MarkovCadence:
@@ -38,7 +38,7 @@ class MarkovCadence:
             text_length = len(text.split())
 
         estimated_reading_secs = min(max_seconds, max(min_seconds, (text_length / 250.0) * 60.0 * 0.1))
-        pareto_jitter = random.paretovariate(alpha=2.5) * 0.4
+        pareto_jitter = rng.paretovariate(alpha=2.5) * 0.4
         dwell_time = estimated_reading_secs + pareto_jitter
 
         return min(max_seconds, max(min_seconds, dwell_time))
@@ -56,18 +56,18 @@ class MarkovCadence:
                 break
 
             if current_state == "SCAN_HEADER":
-                duration = random.uniform(0.3, 0.9)
+                duration = rng.uniform(0.3, 0.9)
             elif current_state == "READ_CONTENT":
-                duration = random.uniform(0.8, 2.2)
+                duration = rng.uniform(0.8, 2.2)
             elif current_state == "HESITATE":
-                duration = random.uniform(0.2, 0.7)
+                duration = rng.uniform(0.2, 0.7)
             else:
-                duration = random.uniform(0.2, 0.5)
+                duration = rng.uniform(0.2, 0.5)
 
             sequence.append((current_state, duration))
 
             options = cls.TRANSITIONS.get(current_state, [("DONE", 1.0)])
             choices, weights = zip(*options)
-            current_state = random.choices(choices, weights=weights)[0]
+            current_state = rng.choices(choices, weights=weights)[0]
 
         return sequence

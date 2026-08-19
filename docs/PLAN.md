@@ -1,6 +1,6 @@
 # Foxcape — Master Plan
 
-**Version:** 1.2  
+**Version:** 1.3  
 **PyPI:** `foxcape`  
 **GitHub:** https://github.com/andreferraro/foxcape  
 **Import:** `from foxcape import Foxcape, FoxcapeConfig, FoxcapeResult`  
@@ -28,8 +28,8 @@
 | **Tests** | `tests/` (see section 12) |
 | **Git remote** | `https://github.com/andreferraro/foxcape.git` |
 
-**Current state:** library lives under `src/foxcape/` with Foxcape public API. Root legacy modules removed.  
-**Remaining work:** SpecKit SDD artifacts, Camoufox mocks, publish workflow, PyPI release.
+**Current state:** library lives under `src/foxcape/` with the Foxcape public API. Offline test suite (**126 tests**, ~96% coverage) green via `make check`. Live integration tests (2) pass with `pytest -m live` after `camoufox fetch`. Publish workflow file ready; PyPI Trusted Publisher and release tag pending manual steps.  
+**Remaining work:** commit/push pending local changes, PyPI Trusted Publisher (T026), GitFlow release tag `v0.1.0` (T028), reviewer sign-off on `release-gate.md` (T030).
 
 **Initial prompt (new Cursor instance in this folder):**
 
@@ -48,14 +48,16 @@ Undetectable Python scraping library for **any developer** (`pip install foxcape
 | Layer | Module | Role |
 |---|---|---|
 | Stealth engine | Camoufox | Patched Firefox, anti-fingerprint C++ |
+| Launch | `camoufox_launch.py` | Shared kwargs, page resolution, evasion injection |
 | Parsing | `parsers.py` | BeautifulSoup + lxml |
 | Mouse | `humanizer.py` | WindMouse |
 | Typing | `turnstile_and_typing.py` | Biometrics + Turnstile |
 | Noise | `noise_injector.py` | Canvas/WebGL/Audio |
 | Hardware | `hardware_spoofing.py` | WebRTC, deviceMemory |
-| Cadence | `cadence.py` | Markov dwell time |
+| Cadence | `cadence.py` + `scrape_cadence.py` | Markov dwell time + post-nav behavior |
 | Profiles | `profiles.py` | Persistence + warmup |
 | Proxies | `proxy_pool.py` | Round-robin, sticky |
+| RNG | `rng.py` | Non-crypto randomness for human-like behavior |
 
 Classes: `Foxcape` (sync), `AsyncFoxcape` (async).
 
@@ -73,8 +75,8 @@ Artifacts live **in this repo** under `specs/001-initial-release/`:
 5. /speckit-checklist     → checklists/*.md — GATE           [DONE]
 6. /speckit-tasks         → tasks.md                         [DONE]
 7. /speckit-analyze       → GATE — DO NOT code before approval [DONE — see summary below]
-8. /speckit-implement     → remaining tasks in tasks.md
-9. /speckit-converge      → test-evidence.json + v0.1.0 PyPI
+8. /speckit-implement     → remaining tasks in tasks.md  [DONE — T013–T025, T027, T029, T031]
+9. /speckit-converge      → test-evidence.json + v0.1.0 PyPI  [PARTIAL — evidence updated; PyPI pending T026/T028]
 ```
 
 Gitflow: `develop` (default) → `release/v0.1.0` → `main` + tag `v0.1.0`.
@@ -272,7 +274,8 @@ Required disclaimer: use responsibly; respect site ToS and applicable laws.
 ├── specs/001-initial-release/
 ├── .specify/memory/constitution.md
 ├── .github/workflows/ci.yml
-├── .github/workflows/publish.yml   ← TODO
+├── .github/workflows/publish.yml
+├── .github/workflows/sonarqube.yml
 ├── src/foxcape/
 │   ├── __init__.py
 │   ├── py.typed
@@ -295,43 +298,44 @@ See root `pyproject.toml` for the live config (hatchling, uv dev groups, ruff, m
 
 ## 12. Tests (`tests/`)
 
-### conftest.py — DONE
+**Total:** 128 collected — **126 offline** (default CI) + **2 live** (`@pytest.mark.live`, opt-in).
 
-Shared fixtures: `default_config`, `sample_html`.
+Default command: `pytest` (applies `-m "not live"` via `pyproject.toml`).
 
-### test_config.py — DONE
-
-Default values for FoxcapeConfig fields.
-
-### test_models.py — DONE
-
-`FoxcapeResult.from_html` parsing, clean text, markdown.
-
-### test_humanizer.py — TODO
-
-`generate_windmouse_path(100,100,500,400)` → len>5, final point (500,400), delay>0.
-
-### test_public_api.py — DONE
-
-`__version__`, exports, ProxyPoolManager round_robin + sticky.
-
-### test_foxcape.py / test_async_foxcape.py — TODO
-
-Mock `camoufox.sync_api.Camoufox` / `AsyncCamoufox` — fake page, goto status 200, context manager lifecycle.
-
-### test_integration.py — TODO
-
-`@pytest.mark.live` — example.com sync+async; **excluded from default CI**.
+| File | Status | Coverage focus |
+|------|--------|----------------|
+| `conftest.py` | DONE | Shared fixtures, mocked Camoufox sync/async |
+| `test_config.py` | DONE | `FoxcapeConfig` defaults |
+| `test_models.py` | DONE | `FoxcapeResult` parsing, links, immutability |
+| `test_public_api.py` | DONE | `__all__`, imports, proxy pool, side-effect-free import |
+| `test_foxcape.py` | DONE | Sync lifecycle, get/fetch, evaluate, turnstile flags |
+| `test_async_foxcape.py` | DONE | Async lifecycle, afetch, cleanup on error |
+| `test_humanizer.py` | DONE | WindMouse path endpoint and delays |
+| `test_humanizer_properties.py` | DONE | Hypothesis property tests (monotonicity, distance) |
+| `test_humanizer_activity.py` | DONE | Mouse simulation and organic activity (mocked) |
+| `test_parsers.py` | DONE | Soup fallback, clean text, markdown, links |
+| `test_proxy_pool.py` | DONE | URL parsing, round-robin, sticky, random |
+| `test_profiles.py` | DONE | Metadata, warmup (mocked), lock cleanup, partial failure |
+| `test_cadence.py` | DONE | Markov dwell time and state sequence |
+| `test_scrape_cadence.py` | DONE | Post-navigation human cadence sync/async |
+| `test_camoufox_launch.py` | DONE | Launch kwargs, page resolution, evasion injection |
+| `test_evasion_scripts.py` | DONE | Canvas/audio noise and hardware spoof scripts |
+| `test_turnstile_and_typing.py` | DONE | Human typing + Turnstile solve (mocked) |
+| `test_smoke_contract.py` | DONE | FR/SC contract tests from spec |
+| `test_edge_cases.py` | DONE | Residual branch coverage |
+| `test_integration.py` | DONE | Live example.com sync+async — **excluded from default CI** |
 
 ---
 
 ## 13. CI/CD
 
-**ci.yml:** DONE — push/PR on develop+main; matrix py3.10–3.13 ubuntu; uv sync; ruff; mypy; pytest.
+**ci.yml:** DONE — push/PR on develop+main; matrix py3.10–3.13 ubuntu; uv sync; ruff; mypy (continue-on-error); offline pytest.
 
-**publish.yml:** TODO — tag v*; uv build; pypa/gh-action-pypi-publish OIDC.
+**publish.yml:** DONE (file) — triggers on tag `v*`; offline pytest; `uv build`; `pypa/gh-action-pypi-publish` OIDC. **Pending:** Trusted Publisher config on PyPI (T026) and first tag push (T028).
 
-**PyPI Trusted Publisher:** owner `andreferraro`, repo `foxcape`, workflow `publish.yml`.
+**sonarqube.yml:** DONE — quality gate on develop/main (see `docs/GITFLOW.md`).
+
+**PyPI Trusted Publisher (manual T026):** owner `andreferraro`, repo `foxcape`, workflow `publish.yml`.
 
 ---
 
@@ -368,22 +372,23 @@ ruff + ruff-format + trailing-whitespace + end-of-file-fixer + check-yaml + chec
 
 - T006–T014 module migration and Foxcape renames
 
-### Phase 3 — Tests — PARTIAL
+### Phase 3 — Tests — DONE
 
 - T015 tests/ scaffold — DONE
-- T016 Camoufox mocks — TODO
-- T17 offline pytest green — DONE (baseline)
+- T016 Camoufox mocks — DONE (`conftest.py`, sync/async scraper tests)
+- Extended QA suite — DONE (126 offline + property tests; see section 12)
 
-### Phase 4 — Publish — TODO
+### Phase 4 — Publish — PARTIAL
 
-- T018 README + quickstart
-- T019 GitHub Actions publish workflow
-- T020 PyPI Trusted Publisher
-- T021 Release v0.1.0
+- T018 README + quickstart — DONE
+- T019 GitHub Actions publish workflow — DONE (`publish.yml`)
+- T020 PyPI Trusted Publisher — **PENDING** (manual on pypi.org, T026)
+- T021 Release v0.1.0 — **PENDING** (GitFlow tag, T028)
 
-### Phase 5 — Converge — TODO
+### Phase 5 — Converge — PARTIAL
 
-- T022 speckit-converge + test-evidence.json
+- T022 speckit-converge + test-evidence.json — DONE (evidence file; update on each release candidate)
+- T030 release-gate.md reviewer sign-off — **PENDING**
 
 ---
 

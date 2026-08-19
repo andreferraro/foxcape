@@ -1,17 +1,17 @@
-import random
-import time
 from typing import Any
 
 from camoufox.sync_api import Camoufox
 
-from .cadence import MarkovCadence
+from .camoufox_launch import (
+    CAMOUFOX_FETCH_HINT,
+    build_camoufox_kwargs,
+    inject_sync_page_evasions,
+    resolve_initial_page,
+)
 from .config import FoxcapeConfig
 from .exceptions import BrowserStartupError
-from .hardware_spoofing import inject_hardware_and_webrtc_spoofing
-from .humanizer import perform_human_activity
 from .models import FoxcapeResult
-from .noise_injector import inject_fingerprint_noise
-from .runtime_options import build_camoufox_kwargs
+from .scrape_cadence import apply_sync_human_cadence
 from .turnstile_and_typing import human_type, solve_turnstile_if_present
 
 
@@ -32,23 +32,25 @@ class Foxcape:
         self.close()
 
     def start(self) -> None:
-        if self.browser is None:
-            self._camoufox_cm = Camoufox(**build_camoufox_kwargs(self.config))
+        if self.browser is not None:
+            return
+
+        camoufox_kwargs = build_camoufox_kwargs(self.config)
+        try:
+            self._camoufox_cm = Camoufox(**camoufox_kwargs)
             self.browser = self._camoufox_cm.__enter__()
+        except Exception as exc:
+            self._camoufox_cm = None
+            self.browser = None
+            raise BrowserStartupError(CAMOUFOX_FETCH_HINT) from exc
 
-            # Handle both Browser and BrowserContext (persistent context)
-            if hasattr(self.browser, "pages") and len(self.browser.pages) > 0:
-                self._page = self.browser.pages[0]
-            elif hasattr(self.browser, "new_page"):
-                self._page = self.browser.new_page()
-
-            # 1. Inject Canvas and Web Audio per-session noise
-            if self._page is not None and (self.config.canvas_noise or self.config.audio_noise):
-                inject_fingerprint_noise(self._page, seed=self.config.noise_seed)
-
-            # 2. Inject deep hardware and WebRTC consistency spoofing
-            if self._page is not None and self.config.hardware_spoofing:
-                inject_hardware_and_webrtc_spoofing(self._page)
+        try:
+            self._page = resolve_initial_page(self.browser)
+            if self._page is not None:
+                inject_sync_page_evasions(self._page, self.config)
+        except Exception:
+            self.close()
+            raise
 
     def close(self) -> None:
         if self._page is not None:
@@ -111,7 +113,6 @@ class Foxcape:
         response = self._page.goto(url, wait_until=target_wait, timeout=target_timeout)
         status_code = response.status if response else None
 
-        # Check and resolve Cloudflare Turnstile if present
         should_solve_turnstile = solve_turnstile if solve_turnstile is not None else self.config.solve_turnstile
         if should_solve_turnstile:
             solve_turnstile_if_present(self._page)
@@ -119,26 +120,13 @@ class Foxcape:
         if wait_selector:
             self._page.wait_for_selector(wait_selector, timeout=target_timeout)
 
-        # Advanced Human Behavioral Cadence (Markov Chain + WindMouse)
         should_sim_mouse = simulate_mouse if simulate_mouse is not None else self.config.simulate_mouse
-
-        if self.config.use_markov_cadence and (should_sim_mouse or human_delay):
-            content_preview = self._page.content()
-            dwell_duration = MarkovCadence.calculate_reading_dwell_time(
-                content_preview,
-                min_seconds=self.config.human_delay_range[0],
-                max_seconds=self.config.human_delay_range[1] * 1.5,
-            )
-            if should_sim_mouse:
-                perform_human_activity(self._page, max_duration_sec=dwell_duration)
-            else:
-                time.sleep(dwell_duration)
-        elif should_sim_mouse:
-            duration = random.uniform(*self.config.human_delay_range) if self.config.human_delay_range else 1.5
-            perform_human_activity(self._page, max_duration_sec=duration)
-        elif human_delay and self.config.human_delay_range:
-            min_d, max_d = self.config.human_delay_range
-            time.sleep(random.uniform(min_d, max_d))
+        apply_sync_human_cadence(
+            self._page,
+            self.config,
+            simulate_mouse=should_sim_mouse,
+            human_delay=human_delay,
+        )
 
         content = self._page.content()
         final_url = self._page.url

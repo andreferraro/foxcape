@@ -43,13 +43,13 @@
 
 ### Tests
 
-- [ ] T013 [P] [US1] Add `tests/test_foxcape.py` mocking `camoufox.sync_api.Camoufox` — lifecycle + get()
-- [ ] T014 [P] [US1] Add import side-effect test in `tests/test_public_api.py` (no browser on import)
+- [x] T013 [P] [US1] Add `tests/test_foxcape.py` mocking `camoufox.sync_api.Camoufox` — lifecycle + get()
+- [x] T014 [P] [US1] Add import side-effect test in `tests/test_public_api.py` (no browser on import)
 
 ### Implementation
 
-- [ ] T015 [US1] Verify clear `BrowserStartupError` when Camoufox unavailable in `src/foxcape/scraper.py`
-- [ ] T016 [US1] Align README quickstart with spec Scenario 1 in `README.md`
+- [x] T015 [US1] Verify clear `BrowserStartupError` when Camoufox unavailable in `src/foxcape/scraper.py`
+- [x] T016 [US1] Align README quickstart with spec Scenario 1 in `README.md`
 
 **Checkpoint**: US1 independently testable offline.
 
@@ -63,12 +63,12 @@
 
 ### Tests
 
-- [ ] T017 [P] [US2] Add `tests/test_async_foxcape.py` mocking `camoufox.async_api.AsyncCamoufox`
-- [ ] T018 [P] [US2] Test async context manager closes browser on exception
+- [x] T017 [P] [US2] Add `tests/test_async_foxcape.py` mocking `camoufox.async_api.AsyncCamoufox`
+- [x] T018 [P] [US2] Test async context manager closes browser on exception
 
 ### Implementation
 
-- [ ] T019 [US2] Verify `BrowserStartupError` paths in `src/foxcape/async_scraper.py`
+- [x] T019 [US2] Verify `BrowserStartupError` paths in `src/foxcape/async_scraper.py`
 
 **Checkpoint**: US1 + US2 offline green.
 
@@ -82,12 +82,12 @@
 
 ### Tests
 
-- [ ] T020 [P] [US3] Add `tests/test_profiles.py` for metadata, `to_foxcape_config`, lock cleanup (mock Foxcape in warmup)
-- [ ] T021 [P] [US3] Extend proxy pool edge case: empty pool returns None
+- [x] T020 [P] [US3] Add `tests/test_profiles.py` for metadata, `to_foxcape_config`, lock cleanup (mock Foxcape in warmup)
+- [x] T021 [P] [US3] Extend proxy pool edge case: empty pool returns None
 
 ### Implementation
 
-- [ ] T022 [US3] Document proxy/profile usage in `README.md` (from quickstart Scenarios 3 & 5)
+- [x] T022 [US3] Document proxy/profile usage in `README.md` (from quickstart Scenarios 3 & 5)
 
 **Checkpoint**: US3 testable without live browser (warmup mocked).
 
@@ -101,8 +101,8 @@
 
 ### Tests
 
-- [ ] T023 [P] [US4] Add `tests/test_humanizer.py` for `generate_windmouse_path` length/endpoint/delay
-- [ ] T024 [P] [US4] Add parser edge cases in `tests/test_models.py` (empty HTML, relative links)
+- [x] T023 [P] [US4] Add `tests/test_humanizer.py` for `generate_windmouse_path` length/endpoint/delay
+- [x] T024 [P] [US4] Add parser edge cases in `tests/test_models.py` (empty HTML, relative links)
 
 **Checkpoint**: US4 fully offline.
 
@@ -116,10 +116,10 @@
 
 ### Implementation
 
-- [ ] T025 [P] [US5] Create `.github/workflows/publish.yml` (tag v*, uv build, pypa/gh-action-pypi-publish OIDC)
-- [ ] T026 [US5] Configure PyPI Trusted Publisher for `andreferraro/foxcape` workflow `publish.yml`
-- [ ] T027 [P] [US5] Add `tests/test_integration.py` with `@pytest.mark.live` (example.com sync+async)
-- [ ] T028 [US5] Gitflow release: branch `release/v0.1.0`, merge to `main`, tag `v0.1.0`, merge back to `develop`
+- [x] T025 [P] [US5] Create `.github/workflows/publish.yml` (tag v*, uv build, pypa/gh-action-pypi-publish OIDC)
+- [ ] T026 [US5] Configure PyPI Trusted Publisher for `andreferraro/foxcape` workflow `publish.yml` *(manual on pypi.org)*
+- [x] T027 [P] [US5] Add `tests/test_integration.py` with `@pytest.mark.live` (example.com sync+async)
+- [ ] T028 [US5] Gitflow release: branch `release/v0.1.0`, merge to `main`, tag `v0.1.0`, merge back to `develop` *(manual release)*
 
 **Checkpoint**: v0.1.0 publishable.
 
@@ -127,9 +127,17 @@
 
 ## Phase 8: Polish & Converge
 
-- [ ] T029 [P] Run `/speckit-converge` and produce `specs/001-initial-release/test-evidence.json`
-- [ ] T030 [P] Mark completed items in `checklists/release-gate.md`
-- [ ] T031 Update `docs/PLAN.md` phase status to reflect v0.1.0 ship
+- [x] T029 [P] Run `/speckit-converge` and produce `specs/001-initial-release/test-evidence.json`
+- [ ] T030 [P] Mark completed items in `checklists/release-gate.md` *(reviewer-owned; do not modify during implement)*
+- [x] T031 Update `docs/PLAN.md` phase status to reflect v0.1.0 ship
+
+---
+
+## Post-v0.1.0 QA extensions (not blocking release)
+
+- [x] Extended offline suite: parsers, evasions, turnstile, cadence, contract/smoke tests
+- [x] Hypothesis property tests for `generate_windmouse_path` (`test_humanizer_properties.py`)
+- [x] Documentation refresh: `docs/ARCHITECTURE.md`, `docs/PLAN.md`, `test-evidence.json` (English, current counts)
 
 ---
 

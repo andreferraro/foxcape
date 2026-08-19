@@ -70,6 +70,9 @@ src/foxcape/
 ├── models.py            # FoxcapeResult
 ├── scraper.py           # Foxcape (sync)
 ├── async_scraper.py     # AsyncFoxcape
+├── camoufox_launch.py   # shared launch + evasion injection
+├── scrape_cadence.py    # post-navigation human cadence
+├── rng.py               # non-crypto randomness
 ├── exceptions.py
 ├── humanizer.py
 ├── cadence.py
@@ -86,14 +89,27 @@ tests/
 ├── test_config.py
 ├── test_models.py
 ├── test_public_api.py
-├── test_humanizer.py        # TODO
-├── test_foxcape.py          # TODO (mocked Camoufox)
-├── test_async_foxcape.py    # TODO (mocked AsyncCamoufox)
-└── test_integration.py      # live marker
+├── test_humanizer.py
+├── test_humanizer_properties.py   # Hypothesis property tests
+├── test_humanizer_activity.py
+├── test_foxcape.py                # mocked Camoufox sync
+├── test_async_foxcape.py          # mocked AsyncCamoufox
+├── test_parsers.py
+├── test_proxy_pool.py
+├── test_profiles.py
+├── test_cadence.py
+├── test_scrape_cadence.py
+├── test_camoufox_launch.py
+├── test_evasion_scripts.py
+├── test_turnstile_and_typing.py
+├── test_smoke_contract.py
+├── test_edge_cases.py
+└── test_integration.py            # @pytest.mark.live
 
 .github/workflows/
 ├── ci.yml                   # DONE
-└── publish.yml                # TODO
+├── publish.yml              # DONE (Trusted Publisher pending T026)
+└── sonarqube.yml            # DONE
 ```
 
 **Structure Decision**: Single-package `src/` layout per hatchling; tests at repo root `tests/`; SpecKit artifacts under `specs/001-initial-release/`.

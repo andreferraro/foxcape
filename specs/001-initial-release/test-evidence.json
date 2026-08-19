@@ -1,0 +1,52 @@
+{
+  "feature": "001-initial-release",
+  "version": "0.1.0",
+  "generated_at": "2026-08-19T22:35:00Z",
+  "gate": "offline-ci",
+  "command": "make check",
+  "status": "pass",
+  "python": "3.12.13",
+  "coverage": {
+    "statements": 854,
+    "missed": 36,
+    "percent": 96
+  },
+  "pytest": {
+    "collected": 128,
+    "selected_offline": 126,
+    "deselected_live": 2,
+    "passed_offline": 126,
+    "passed_live": 2,
+    "failed": 0
+  },
+  "lint": "ruff check — pass",
+  "format": "ruff format — pass",
+  "typecheck": "mypy src/foxcape — pass",
+  "test_files": [
+    "tests/test_async_foxcape.py",
+    "tests/test_cadence.py",
+    "tests/test_camoufox_launch.py",
+    "tests/test_config.py",
+    "tests/test_edge_cases.py",
+    "tests/test_evasion_scripts.py",
+    "tests/test_foxcape.py",
+    "tests/test_humanizer.py",
+    "tests/test_humanizer_activity.py",
+    "tests/test_humanizer_properties.py",
+    "tests/test_integration.py",
+    "tests/test_models.py",
+    "tests/test_parsers.py",
+    "tests/test_profiles.py",
+    "tests/test_proxy_pool.py",
+    "tests/test_public_api.py",
+    "tests/test_scrape_cadence.py",
+    "tests/test_smoke_contract.py",
+    "tests/test_turnstile_and_typing.py"
+  ],
+  "notes": [
+    "Live integration tests (test_integration.py) excluded via -m 'not live'; run pytest -m live after camoufox fetch.",
+    "Property-based tests in test_humanizer_properties.py use Hypothesis (dev dependency).",
+    "PyPI Trusted Publisher (T026) and GitFlow release tag (T028) require manual operator steps.",
+    "release-gate.md checklist is reviewer-owned; not modified during implement."
+  ]
+}

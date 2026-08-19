@@ -1,10 +1,10 @@
 import json
 import logging
-import random
 import time
 from datetime import datetime
 from pathlib import Path
 
+from . import rng
 from .config import FoxcapeConfig
 from .scraper import Foxcape
 
@@ -51,23 +51,33 @@ class BrowserProfile:
             except Exception:
                 pass
 
-    def _load_metadata(self) -> dict:
-        if self.metadata_file.exists():
-            try:
-                with open(self.metadata_file, encoding="utf-8") as f:
-                    return json.load(f)
-            except Exception:
-                pass
-
-        default_meta = {
+    def _default_metadata(self) -> dict:
+        now = datetime.now().isoformat()
+        return {
             "name": self.name,
-            "created_at": datetime.now().isoformat(),
-            "last_used_at": datetime.now().isoformat(),
+            "created_at": now,
+            "last_used_at": now,
             "visited_urls_count": 0,
             "warmup_completed": False,
             "warmup_category": None,
             "visited_domains": [],
         }
+
+    def _load_metadata(self) -> dict:
+        default_meta = self._default_metadata()
+        if self.metadata_file.exists():
+            try:
+                with open(self.metadata_file, encoding="utf-8") as f:
+                    loaded = json.load(f)
+                if isinstance(loaded, dict):
+                    merged = {**default_meta, **loaded}
+                    merged["name"] = self.name
+                    if not isinstance(merged.get("visited_domains"), list):
+                        merged["visited_domains"] = []
+                    return merged
+            except Exception:
+                pass
+
         self._save_metadata(default_meta)
         return default_meta
 
@@ -99,6 +109,42 @@ class BrowserProfile:
         cfg.persistent_context = True
         return cfg
 
+    def _warmup_config(self, headless: bool) -> FoxcapeConfig:
+        return self.to_foxcape_config(
+            FoxcapeConfig(
+                headless=headless,
+                humanize=True,
+                simulate_mouse=True,
+                use_markov_cadence=True,
+                canvas_noise=True,
+                audio_noise=True,
+            )
+        )
+
+    def _record_warmup_visit(self, url: str) -> None:
+        self.metadata["visited_urls_count"] = self.metadata.get("visited_urls_count", 0) + 1
+        domain = url.split("/")[2] if "//" in url else url
+        if domain not in self.metadata["visited_domains"]:
+            self.metadata["visited_domains"].append(domain)
+
+    def _warmup_single_url(self, scraper: Foxcape, url: str, step: int, total: int, verbose: bool) -> None:
+        if verbose:
+            print(f"[*] [Warmup {step}/{total}] Visiting {url} and generating telemetry...", flush=True)
+        t0 = time.time()
+        result = scraper.get(
+            url,
+            wait_until="domcontentloaded",
+            human_delay=True,
+            simulate_mouse=True,
+        )
+        elapsed = time.time() - t0
+        self._record_warmup_visit(url)
+        if verbose:
+            print(
+                f"[+] [Warmup {step}/{total}] OK ({elapsed:.1f}s) - Title: {result.title[:45]}",
+                flush=True,
+            )
+
     def warmup(
         self,
         category: str = "general",
@@ -112,64 +158,37 @@ class BrowserProfile:
         """
         self.clean_lock()
         seed_urls = WARMUP_SEEDS.get(category, WARMUP_SEEDS["general"])
-        selected_urls = random.sample(seed_urls, min(steps, len(seed_urls)))
+        selected_urls = rng.sample(seed_urls, min(steps, len(seed_urls)))
 
         if verbose:
             print(
-                f"[*] [Warmup] Iniciando aquecimento do perfil '{self.name}' ({len(selected_urls)} etapas na categoria '{category}')...",
+                f"[*] [Warmup] Starting warmup for profile '{self.name}' ({len(selected_urls)} steps in category '{category}')...",
                 flush=True,
             )
 
-        config = self.to_foxcape_config(
-            FoxcapeConfig(
-                headless=headless,
-                humanize=True,
-                simulate_mouse=True,
-                use_markov_cadence=True,
-                canvas_noise=True,
-                audio_noise=True,
-            )
-        )
+        config = self._warmup_config(headless=headless)
+        successes = 0
 
         with Foxcape(config) as scraper:
             for i, url in enumerate(selected_urls, 1):
                 try:
-                    if verbose:
-                        print(
-                            f"[*] [Warmup {i}/{len(selected_urls)}] Acessando {url} e gerando telemetria...", flush=True
-                        )
-
-                    t0 = time.time()
-                    result = scraper.get(
-                        url,
-                        wait_until="domcontentloaded",
-                        human_delay=True,
-                        simulate_mouse=True,
-                    )
-                    elapsed = time.time() - t0
-
-                    self.metadata["visited_urls_count"] = self.metadata.get("visited_urls_count", 0) + 1
-                    domain = url.split("/")[2] if "//" in url else url
-                    if domain not in self.metadata["visited_domains"]:
-                        self.metadata["visited_domains"].append(domain)
-
-                    if verbose:
-                        print(
-                            f"[+] [Warmup {i}/{len(selected_urls)}] OK ({elapsed:.1f}s) - Titulo: {result.title[:45]}",
-                            flush=True,
-                        )
+                    self._warmup_single_url(scraper, url, i, len(selected_urls), verbose)
+                    successes += 1
                 except Exception as e:
                     if verbose:
-                        print(f"[!] [Warmup {i}/{len(selected_urls)}] Aviso: falha ao acessar {url}: {e}", flush=True)
+                        print(f"[!] [Warmup {i}/{len(selected_urls)}] Warning: failed to visit {url}: {e}", flush=True)
 
-        self.metadata["warmup_completed"] = True
+        warmed = successes > 0
+        self.metadata["warmup_completed"] = warmed or self.is_warm
         self.metadata["warmup_category"] = category
         self.metadata["last_used_at"] = datetime.now().isoformat()
         self._save_metadata()
 
-        if verbose:
-            print(f"[+] [Warmup] Concluido com sucesso! Perfil '{self.name}' pronto para producao.\n", flush=True)
-        return True
+        if verbose and warmed:
+            print(f"[+] [Warmup] Completed successfully! Profile '{self.name}' is ready for production.\n", flush=True)
+        elif verbose:
+            print(f"[!] [Warmup] No steps completed for profile '{self.name}'.\n", flush=True)
+        return warmed
 
 
 class ProfileManager:

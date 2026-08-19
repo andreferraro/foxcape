@@ -1,0 +1,56 @@
+# Publish foxcape to PyPI on version tags (GitFlow release → main).
+#
+# One-time setup (T026): https://pypi.org/manage/project/foxcape/settings/publishing/
+#   - Add Trusted Publisher: GitHub
+#   - Owner: andreferraro
+#   - Repository: foxcape
+#   - Workflow: publish.yml
+#   - Environment: (leave blank for tag-based publishing)
+
+name: Publish
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Validate tag matches package version
+        run: |
+          TAG="${GITHUB_REF#refs/tags/v}"
+          PKG=$(python3 -c "import tomllib; print(tomllib.load(open('pyproject.toml','rb'))['project']['version'])")
+          if [ "$TAG" != "$PKG" ]; then
+            echo "Tag v$TAG does not match pyproject.toml version $PKG"
+            exit 1
+          fi
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: false
+
+      - name: Set up Python
+        run: uv python install 3.12
+
+      - name: Sync dependencies
+        run: uv sync --all-groups --locked
+
+      - name: Run offline tests
+        run: uv run --locked pytest
+
+      - name: Build package
+        run: uv build
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1

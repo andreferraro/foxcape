@@ -25,7 +25,7 @@ class FoxcapeResult:
     ) -> "FoxcapeResult":
         soup = build_soup(html, parser_engine)
         title_tag = soup.find("title")
-        title = title_tag.get_text(strip=True) if title_tag else ""
+        title = title_tag.get_text(strip=True) if isinstance(title_tag, Tag) else ""
         return cls(url=url, html=html, soup=soup, status_code=status_code, title=title)
 
     def select_one(self, selector: str) -> Tag | None:

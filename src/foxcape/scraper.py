@@ -11,7 +11,7 @@ from .hardware_spoofing import inject_hardware_and_webrtc_spoofing
 from .humanizer import perform_human_activity
 from .models import FoxcapeResult
 from .noise_injector import inject_fingerprint_noise
-from .proxy_pool import ProxyConfig
+from .runtime_options import build_camoufox_kwargs
 from .turnstile_and_typing import human_type, solve_turnstile_if_present
 
 
@@ -33,44 +33,7 @@ class Foxcape:
 
     def start(self) -> None:
         if self.browser is None:
-            camoufox_kwargs: dict[str, Any] = {
-                "headless": self.config.headless,
-                "humanize": self.config.humanize,
-                "geoip": self.config.geoip,
-                "os": self.config.os,
-            }
-            if self.config.fingerprint_preset is not None:
-                camoufox_kwargs["fingerprint_preset"] = self.config.fingerprint_preset
-            if self.config.disable_coop:
-                camoufox_kwargs["disable_coop"] = True
-                if self.config.i_know_what_im_doing:
-                    camoufox_kwargs["i_know_what_im_doing"] = True
-            if self.config.geoip_db:
-                camoufox_kwargs["geoip_db"] = self.config.geoip_db
-            if self.config.block_images:
-                camoufox_kwargs["block_images"] = self.config.block_images
-            if self.config.block_webrtc:
-                camoufox_kwargs["block_webrtc"] = self.config.block_webrtc
-            if self.config.block_webgl:
-                camoufox_kwargs["block_webgl"] = self.config.block_webgl
-            if self.config.window:
-                camoufox_kwargs["window"] = self.config.window
-            if self.config.locale:
-                camoufox_kwargs["locale"] = self.config.locale
-            if self.config.fonts:
-                camoufox_kwargs["fonts"] = self.config.fonts
-            if self.config.proxy:
-                if isinstance(self.config.proxy, str):
-                    camoufox_kwargs["proxy"] = ProxyConfig.from_url(self.config.proxy).to_playwright_dict()
-                elif isinstance(self.config.proxy, ProxyConfig):
-                    camoufox_kwargs["proxy"] = self.config.proxy.to_playwright_dict()
-                else:
-                    camoufox_kwargs["proxy"] = self.config.proxy
-            if self.config.user_data_dir:
-                camoufox_kwargs["user_data_dir"] = str(self.config.user_data_dir)
-                camoufox_kwargs["persistent_context"] = self.config.persistent_context
-
-            self._camoufox_cm = Camoufox(**camoufox_kwargs)
+            self._camoufox_cm = Camoufox(**build_camoufox_kwargs(self.config))
             self.browser = self._camoufox_cm.__enter__()
 
             # Handle both Browser and BrowserContext (persistent context)

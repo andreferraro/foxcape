@@ -43,5 +43,8 @@ jobs:
 
       - name: SonarQube scan
         uses: SonarSource/sonarqube-scan-action@v8.2.1
+        with:
+          args: >
+            -Dsonar.qualitygate.wait=true
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

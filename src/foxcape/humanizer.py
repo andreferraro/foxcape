@@ -1,10 +1,11 @@
 import asyncio
 import math
-import random
 import time
 
 from playwright.async_api import Page as AsyncPage
 from playwright.sync_api import Page as SyncPage
+
+from . import rng
 
 
 def generate_windmouse_path(
@@ -37,13 +38,13 @@ def generate_windmouse_path(
 
         w_mag = min(wind, dist)
         if dist >= target_area:
-            w_x = w_x / math.sqrt(3) + (random.random() * (w_mag * 2 + 1) - w_mag) / math.sqrt(5)
-            w_y = w_y / math.sqrt(3) + (random.random() * (w_mag * 2 + 1) - w_mag) / math.sqrt(5)
+            w_x = w_x / math.sqrt(3) + (rng.rand_float() * (w_mag * 2 + 1) - w_mag) / math.sqrt(5)
+            w_y = w_y / math.sqrt(3) + (rng.rand_float() * (w_mag * 2 + 1) - w_mag) / math.sqrt(5)
         else:
             w_x /= math.sqrt(3)
             w_y /= math.sqrt(3)
             if max_step < 3:
-                max_step = random.random() * 3 + 3.0
+                max_step = rng.rand_float() * 3 + 3.0
             else:
                 max_step /= math.sqrt(5)
 
@@ -52,28 +53,28 @@ def generate_windmouse_path(
 
         v_mag = math.hypot(v_x, v_y)
         if v_mag > max_step:
-            v_clip = (max_step / 2.0) + random.random() * (max_step / 2.0)
+            v_clip = (max_step / 2.0) + rng.rand_float() * (max_step / 2.0)
             v_x = (v_x / v_mag) * v_clip
             v_y = (v_y / v_mag) * v_clip
 
         current_x += v_x
         current_y += v_y
 
-        jitter_x = random.gauss(0, 0.3)
-        jitter_y = random.gauss(0, 0.3)
+        jitter_x = rng.gauss(0, 0.3)
+        jitter_y = rng.gauss(0, 0.3)
 
-        step_delay = (random.uniform(min_wait, max_wait)) / 1000.0
+        step_delay = (rng.uniform(min_wait, max_wait)) / 1000.0
         points.append((round(current_x + jitter_x, 1), round(current_y + jitter_y, 1), step_delay))
 
-    points.append((dest_x, dest_y, random.uniform(5, 15) / 1000.0))
+    points.append((dest_x, dest_y, rng.uniform(5, 15) / 1000.0))
     return points
 
 
 def simulate_human_mouse_movement(page: SyncPage, target_x: float, target_y: float):
     """Simulates realistic human trajectory towards a target coordinate."""
     vp = page.viewport_size or {"width": 1280, "height": 800}
-    start_x = random.uniform(100, vp["width"] - 100)
-    start_y = random.uniform(100, vp["height"] - 100)
+    start_x = rng.uniform(100, vp["width"] - 100)
+    start_y = rng.uniform(100, vp["height"] - 100)
 
     path = generate_windmouse_path(start_x, start_y, target_x, target_y)
     for x, y, delay in path:
@@ -85,8 +86,8 @@ def simulate_human_mouse_movement(page: SyncPage, target_x: float, target_y: flo
 async def async_simulate_human_mouse_movement(page: AsyncPage, target_x: float, target_y: float):
     """Asynchronously simulates realistic human trajectory towards a target coordinate."""
     vp = page.viewport_size or {"width": 1280, "height": 800}
-    start_x = random.uniform(100, vp["width"] - 100)
-    start_y = random.uniform(100, vp["height"] - 100)
+    start_x = rng.uniform(100, vp["width"] - 100)
+    start_y = rng.uniform(100, vp["height"] - 100)
 
     path = generate_windmouse_path(start_x, start_y, target_x, target_y)
     for x, y, delay in path:
@@ -106,18 +107,18 @@ def perform_human_activity(page: SyncPage, max_duration_sec: float = 2.0):
     start_time = time.time()
 
     while (time.time() - start_time) < max_duration_sec:
-        target_x = random.uniform(150, vp["width"] - 150)
-        target_y = random.uniform(150, min(vp["height"] - 100, 600))
+        target_x = rng.uniform(150, vp["width"] - 150)
+        target_y = rng.uniform(150, min(vp["height"] - 100, 600))
 
         simulate_human_mouse_movement(page, target_x, target_y)
 
-        time.sleep(random.uniform(0.1, 0.4))
+        time.sleep(rng.uniform(0.1, 0.4))
 
-        if random.random() < 0.4:
-            scroll_delta = random.randint(40, 160)
+        if rng.rand_float() < 0.4:
+            scroll_delta = rng.randint(40, 160)
             page.mouse.wheel(0, scroll_delta)
-            time.sleep(random.uniform(0.1, 0.3))
-            if random.random() < 0.3:
+            time.sleep(rng.uniform(0.1, 0.3))
+            if rng.rand_float() < 0.3:
                 page.mouse.wheel(0, -scroll_delta // 2)
 
         if (time.time() - start_time) >= max_duration_sec:
@@ -132,18 +133,18 @@ async def async_perform_human_activity(page: AsyncPage, max_duration_sec: float 
     start_time = time.time()
 
     while (time.time() - start_time) < max_duration_sec:
-        target_x = random.uniform(150, vp["width"] - 150)
-        target_y = random.uniform(150, min(vp["height"] - 100, 600))
+        target_x = rng.uniform(150, vp["width"] - 150)
+        target_y = rng.uniform(150, min(vp["height"] - 100, 600))
 
         await async_simulate_human_mouse_movement(page, target_x, target_y)
 
-        await asyncio.sleep(random.uniform(0.1, 0.4))
+        await asyncio.sleep(rng.uniform(0.1, 0.4))
 
-        if random.random() < 0.4:
-            scroll_delta = random.randint(40, 160)
+        if rng.rand_float() < 0.4:
+            scroll_delta = rng.randint(40, 160)
             await page.mouse.wheel(0, scroll_delta)
-            await asyncio.sleep(random.uniform(0.1, 0.3))
-            if random.random() < 0.3:
+            await asyncio.sleep(rng.uniform(0.1, 0.3))
+            if rng.rand_float() < 0.3:
                 await page.mouse.wheel(0, -scroll_delta // 2)
 
         if (time.time() - start_time) >= max_duration_sec:

@@ -1,6 +1,7 @@
-import random
 from dataclasses import dataclass
 from urllib.parse import urlparse
+
+from . import rng
 
 
 @dataclass
@@ -70,11 +71,11 @@ class ProxyPoolManager:
 
         if session_id:
             if session_id not in self._sticky_sessions:
-                self._sticky_sessions[session_id] = random.choice(self._proxies)
+                self._sticky_sessions[session_id] = rng.choice(self._proxies)
             return self._sticky_sessions[session_id]
 
         if strategy == "random":
-            return random.choice(self._proxies)
+            return rng.choice(self._proxies)
 
         # Round robin
         proxy = self._proxies[self._index % len(self._proxies)]

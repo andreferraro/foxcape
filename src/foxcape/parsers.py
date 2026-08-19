@@ -3,18 +3,20 @@ from urllib.parse import urljoin
 
 from bs4 import BeautifulSoup
 
+HTML_PARSER = "html.parser"
+
 
 def build_soup(html: str, parser_engine: str = "lxml") -> BeautifulSoup:
     """Build BeautifulSoup instance with graceful fallback."""
     try:
         return BeautifulSoup(html, parser_engine)
     except Exception:
-        return BeautifulSoup(html, "html.parser")
+        return BeautifulSoup(html, HTML_PARSER)
 
 
 def extract_clean_text(soup: BeautifulSoup) -> str:
     """Extract clean readable text from DOM, stripping noise tags."""
-    soup_copy = BeautifulSoup(str(soup), "html.parser")
+    soup_copy = BeautifulSoup(str(soup), HTML_PARSER)
     for tag in soup_copy(["script", "style", "noscript", "svg", "header", "footer"]):
         tag.decompose()
     text = soup_copy.get_text(separator="\n", strip=True)
@@ -39,7 +41,7 @@ def extract_links_from_soup(soup: BeautifulSoup, base_url: str = "") -> list[dic
 
 def dom_to_markdown_summary(soup: BeautifulSoup) -> str:
     """Convert key semantic elements to clean markdown for LLM ingestion."""
-    soup_copy = BeautifulSoup(str(soup), "html.parser")
+    soup_copy = BeautifulSoup(str(soup), HTML_PARSER)
     for tag in soup_copy(["script", "style", "noscript"]):
         tag.decompose()
 

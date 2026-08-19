@@ -62,6 +62,7 @@ def test_contract_proxy_pool_sticky_and_round_robin() -> None:
     rr2 = pool.get_proxy(strategy="round_robin")
     assert rr1 is not None
     assert rr2 is not None
+    assert rr1.server != rr2.server
     sticky = pool.get_proxy(session_id="sess")
     assert sticky == pool.get_proxy(session_id="sess")
 

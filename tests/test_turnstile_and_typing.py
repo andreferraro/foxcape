@@ -60,7 +60,7 @@ def test_human_type_clamps_non_positive_wpm_speed() -> None:
         with patch("foxcape.turnstile_and_typing.rng.uniform", return_value=0.05):
             with patch("foxcape.turnstile_and_typing.rng.rand_float", return_value=0.0):
                 with patch("foxcape.turnstile_and_typing.rng.lognormvariate", return_value=0.05) as mock_lognorm:
-                    human_type(page, "#input", "a", typo_probability=0.0, wpm_speed=0.0)
+                    human_type(page, "#input", "a", typo_probability=0.0, wpm_speed=float("inf"))
     expected_base = 60.0 / (65.0 * 5.0)
     mock_lognorm.assert_called_with(math.log(expected_base), 0.35)
 

@@ -46,6 +46,12 @@ KEYBOARD_NEIGHBORS = {
 }
 
 
+def _normalize_wpm_speed(wpm_speed: float) -> float:
+    if not math.isfinite(wpm_speed) or wpm_speed <= 0:
+        return 65.0
+    return wpm_speed
+
+
 def human_type(
     page: SyncPage,
     selector: str,
@@ -59,8 +65,7 @@ def human_type(
     - Key dwell time (press down -> release).
     - Natural typo generation with immediate Backspace correction.
     """
-    if wpm_speed <= 0:
-        wpm_speed = 65.0
+    wpm_speed = _normalize_wpm_speed(wpm_speed)
 
     element = page.locator(selector).first
     element.click()
@@ -99,8 +104,7 @@ async def async_human_type(
     """
     Asynchronously types text with authentic human biometric rhythm.
     """
-    if wpm_speed <= 0:
-        wpm_speed = 65.0
+    wpm_speed = _normalize_wpm_speed(wpm_speed)
 
     element = page.locator(selector).first
     await element.click()

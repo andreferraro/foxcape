@@ -24,6 +24,8 @@ class ProxyConfig:
         username = parsed.username
         password = parsed.password
         hostname = parsed.hostname
+        if not hostname:
+            raise ValueError("Proxy URL must include a hostname.")
         port = parsed.port or (8080 if scheme.startswith("http") else 1080)
 
         server = f"{scheme}://{hostname}:{port}"

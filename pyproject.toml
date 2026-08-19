@@ -34,7 +34,7 @@ build-backend = "hatchling.build"
 packages = ["src/foxcape"]
 
 [dependency-groups]
-dev = ["pytest>=9", "pytest-asyncio>=1.4", "ruff>=0.9", "mypy>=1.15", "pre-commit>=4"]
+dev = ["pytest>=9", "pytest-asyncio>=1.4", "ruff>=0.9", "mypy>=1.15", "pre-commit>=4", "pytest-cov>=7"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

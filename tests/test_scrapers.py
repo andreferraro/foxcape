@@ -131,8 +131,8 @@ def rich_config(tmp_path) -> FoxcapeConfig:
 def test_sync_scraper_lifecycle_and_get(monkeypatch: pytest.MonkeyPatch, tmp_path) -> None:
     calls: list[str] = []
     page = FakePage()
-    FakeCamoufox.browser = FakeBrowser(page)
-    FakeCamoufox.exited = False
+    monkeypatch.setattr(FakeCamoufox, "browser", FakeBrowser(page))
+    monkeypatch.setattr(FakeCamoufox, "exited", False)
 
     monkeypatch.setattr("foxcape.scraper.Camoufox", FakeCamoufox)
     monkeypatch.setattr("foxcape.scraper.inject_fingerprint_noise", lambda p, seed=None: calls.append(f"noise:{seed}"))
@@ -159,7 +159,8 @@ def test_sync_scraper_lifecycle_and_get(monkeypatch: pytest.MonkeyPatch, tmp_pat
 
 
 def test_sync_scraper_uses_new_page_and_fetch(monkeypatch: pytest.MonkeyPatch) -> None:
-    FakeCamoufox.browser = FakeBrowser(None)
+    monkeypatch.setattr(FakeCamoufox, "browser", FakeBrowser(None))
+    monkeypatch.setattr(FakeCamoufox, "exited", False)
     monkeypatch.setattr("foxcape.scraper.Camoufox", FakeCamoufox)
     monkeypatch.setattr("foxcape.scraper.inject_fingerprint_noise", lambda p, seed=None: None)
     monkeypatch.setattr("foxcape.scraper.inject_hardware_and_webrtc_spoofing", lambda p: None)
@@ -195,8 +196,8 @@ def test_sync_scraper_raises_when_no_page(monkeypatch: pytest.MonkeyPatch) -> No
 async def test_async_scraper_lifecycle_and_get(monkeypatch: pytest.MonkeyPatch, tmp_path) -> None:
     calls: list[str] = []
     page = AsyncFakePage()
-    AsyncFakeCamoufox.browser = AsyncFakeBrowser(page)
-    AsyncFakeCamoufox.exited = False
+    monkeypatch.setattr(AsyncFakeCamoufox, "browser", AsyncFakeBrowser(page))
+    monkeypatch.setattr(AsyncFakeCamoufox, "exited", False)
 
     async def async_noise(p, seed=None) -> None:
         calls.append(f"noise:{seed}")
@@ -236,7 +237,8 @@ async def test_async_scraper_lifecycle_and_get(monkeypatch: pytest.MonkeyPatch, 
 
 
 async def test_async_scraper_new_page_fetch_and_raise(monkeypatch: pytest.MonkeyPatch) -> None:
-    AsyncFakeCamoufox.browser = AsyncFakeBrowser(None)
+    monkeypatch.setattr(AsyncFakeCamoufox, "browser", AsyncFakeBrowser(None))
+    monkeypatch.setattr(AsyncFakeCamoufox, "exited", False)
 
     async def noop(*args, **kwargs) -> None:
         return None

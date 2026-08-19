@@ -2,32 +2,42 @@
 
 Undetectable web scraping library powered by [Camoufox](https://camoufox.com/), BeautifulSoup, and anti-bot evasions.
 
-**Status:** bootstrap — legacy modules at repo root; migration to `src/foxcape/` in progress. See [`docs/PLAN.md`](docs/PLAN.md).
+```bash
+pip install foxcape
+python -m camoufox fetch   # one-time browser download
+```
 
-## Quick start (dev)
+```python
+from foxcape import Foxcape, FoxcapeConfig
+
+with Foxcape(FoxcapeConfig(headless=True)) as fox:
+    result = fox.get("https://example.com", human_delay=False, simulate_mouse=False)
+    print(result.title, result.select_one("h1"))
+```
+
+## Development
 
 ```bash
 make install
 make check
 ```
 
+## Layout
+
+| Path | Purpose |
+|------|---------|
+| `src/foxcape/` | Library source (published to PyPI) |
+| `tests/` | Offline pytest suite |
+| `docs/` | [Architecture](docs/ARCHITECTURE.md), [GitFlow](docs/GITFLOW.md), [Plan](docs/PLAN.md) |
+| `specs/` | SpecKit SDD artifacts |
+
 ## GitFlow
 
-| Branch | Purpose |
-|--------|---------|
-| `develop` | default integration branch |
-| `feature/*` | new work |
-| `release/*` | release prep |
-| `main` | production releases (tags `v*`) |
-
-## Agent tooling
-
-- **SpecKit** — SDD workflow (`/speckit-constitution`, `/speckit-specify`, …)
-- **Graphify** — codebase knowledge graph (`/graphify`)
-- **Ponytail** — YAGNI / scope guard (`/ponytail`)
-- **GitHub MCP** — `.cursor/mcp.json` (set `GITHUB_TOKEN` in `.env` or system env)
+Default branch: **`develop`**. See [docs/GITFLOW.md](docs/GITFLOW.md).
 
 ## Links
 
 - [GitHub](https://github.com/andreferraro/foxcape)
-- [Master plan](docs/PLAN.md)
+- [Architecture](docs/ARCHITECTURE.md)
+
+**Disclaimer:** Use responsibly. Respect site ToS and applicable laws.

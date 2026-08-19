@@ -62,5 +62,12 @@ Thumbs.db
 graphify-out/
 raw/
 
+# Graphify runtime (installed via uv tool when skill runs)
+.agents/skills/graphify/*
+!.agents/skills/graphify/SKILL.md
+
+# Browser profiles (local dev)
+.profiles/
+
 # Camoufox browser cache
 .camoufox/

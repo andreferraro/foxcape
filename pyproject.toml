@@ -34,7 +34,14 @@ build-backend = "hatchling.build"
 packages = ["src/foxcape"]
 
 [dependency-groups]
-dev = ["pytest>=9", "pytest-asyncio>=1.4", "ruff>=0.9", "mypy>=1.15", "pre-commit>=4"]
+dev = [
+    "pytest>=9",
+    "pytest-asyncio>=1.4",
+    "ruff>=0.9",
+    "mypy>=1.15",
+    "pre-commit>=4",
+    "graphifyy>=0.9.47",
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -46,7 +53,7 @@ markers = ["live: requires camoufox browser and network"]
 target-version = "py310"
 line-length = 120
 exclude = [".agents", ".cursor/skills", "graphify-out"]
-include = ["src/**/*.py", "tests/**/*.py", "*.py"]
+include = ["src/**/*.py", "tests/**/*.py"]
 
 [tool.ruff.lint]
 select = ["E", "W", "F", "I", "B", "UP"]
@@ -56,3 +63,4 @@ ignore = ["E501", "B905"]
 python_version = "3.12"
 check_untyped_defs = true
 ignore_missing_imports = true
+packages = ["foxcape"]

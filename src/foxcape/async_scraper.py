@@ -1,17 +1,17 @@
-import asyncio
-import random
 from typing import Any
 
 from camoufox.async_api import AsyncCamoufox
 
-from .cadence import MarkovCadence
+from .camoufox_launch import (
+    CAMOUFOX_FETCH_HINT,
+    async_resolve_initial_page,
+    build_camoufox_kwargs,
+    inject_async_page_evasions,
+)
 from .config import FoxcapeConfig
 from .exceptions import BrowserStartupError
-from .hardware_spoofing import async_inject_hardware_and_webrtc_spoofing
-from .humanizer import async_perform_human_activity
 from .models import FoxcapeResult
-from .noise_injector import async_inject_fingerprint_noise
-from .runtime_options import build_camoufox_kwargs
+from .scrape_cadence import apply_async_human_cadence
 from .turnstile_and_typing import async_human_type, async_solve_turnstile_if_present
 
 
@@ -32,22 +32,18 @@ class AsyncFoxcape:
         await self.close()
 
     async def start(self) -> None:
-        if self.browser is None:
+        if self.browser is not None:
+            return
+
+        try:
             self._camoufox_cm = AsyncCamoufox(**build_camoufox_kwargs(self.config))
             self.browser = await self._camoufox_cm.__aenter__()
+        except Exception as exc:
+            raise BrowserStartupError(CAMOUFOX_FETCH_HINT) from exc
 
-            if hasattr(self.browser, "pages") and len(self.browser.pages) > 0:
-                self._page = self.browser.pages[0]
-            elif hasattr(self.browser, "new_page"):
-                self._page = await self.browser.new_page()
-
-            # 1. Inject Canvas and Web Audio per-session noise
-            if self._page is not None and (self.config.canvas_noise or self.config.audio_noise):
-                await async_inject_fingerprint_noise(self._page, seed=self.config.noise_seed)
-
-            # 2. Inject deep hardware and WebRTC consistency spoofing
-            if self._page is not None and self.config.hardware_spoofing:
-                await async_inject_hardware_and_webrtc_spoofing(self._page)
+        self._page = await async_resolve_initial_page(self.browser)
+        if self._page is not None:
+            await inject_async_page_evasions(self._page, self.config)
 
     async def close(self) -> None:
         if self._page is not None:
@@ -113,24 +109,12 @@ class AsyncFoxcape:
             await self._page.wait_for_selector(wait_selector, timeout=target_timeout)
 
         should_sim_mouse = simulate_mouse if simulate_mouse is not None else self.config.simulate_mouse
-
-        if self.config.use_markov_cadence and (should_sim_mouse or human_delay):
-            content_preview = await self._page.content()
-            dwell_duration = MarkovCadence.calculate_reading_dwell_time(
-                content_preview,
-                min_seconds=self.config.human_delay_range[0],
-                max_seconds=self.config.human_delay_range[1] * 1.5,
-            )
-            if should_sim_mouse:
-                await async_perform_human_activity(self._page, max_duration_sec=dwell_duration)
-            else:
-                await asyncio.sleep(dwell_duration)
-        elif should_sim_mouse:
-            duration = random.uniform(*self.config.human_delay_range) if self.config.human_delay_range else 1.5
-            await async_perform_human_activity(self._page, max_duration_sec=duration)
-        elif human_delay and self.config.human_delay_range:
-            min_d, max_d = self.config.human_delay_range
-            await asyncio.sleep(random.uniform(min_d, max_d))
+        await apply_async_human_cadence(
+            self._page,
+            self.config,
+            simulate_mouse=should_sim_mouse,
+            human_delay=human_delay,
+        )
 
         content = await self._page.content()
         final_url = self._page.url

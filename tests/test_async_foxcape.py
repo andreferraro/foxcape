@@ -36,8 +36,8 @@ async def test_async_context_closes_browser_on_exception(
 ) -> None:
     page, cm = mock_async_camoufox
     page.goto.side_effect = RuntimeError("navigation failed")
-    with pytest.raises(RuntimeError, match="navigation failed"):
-        async with AsyncFoxcape(default_config) as fox:
+    async with AsyncFoxcape(default_config) as fox:
+        with pytest.raises(RuntimeError, match="navigation failed"):
             await fox.get("https://example.com", human_delay=False)
     page.close.assert_called_once()
     cm.__aexit__.assert_awaited_once()

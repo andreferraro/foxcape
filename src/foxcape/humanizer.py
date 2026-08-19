@@ -29,8 +29,6 @@ def generate_windmouse_path(
     v_x, v_y = 0.0, 0.0
     w_x, w_y = 0.0, 0.0
 
-    dist = math.hypot(dest_x - start_x, dest_y - start_y)
-
     while True:
         dist = math.hypot(dest_x - current_x, dest_y - current_y)
         if dist < 1.0:

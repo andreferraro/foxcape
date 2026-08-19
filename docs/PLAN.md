@@ -1,119 +1,89 @@
 # Foxcape — Master Plan
 
-**Versão:** 1.1  
+**Version:** 1.2  
 **PyPI:** `foxcape`  
 **GitHub:** https://github.com/andreferraro/foxcape  
 **Import:** `from foxcape import Foxcape, FoxcapeConfig, FoxcapeResult`  
-**Licença:** MIT | **Python:** `>=3.10,<4.0`
+**License:** MIT | **Python:** `>=3.10,<4.0`
 
 ---
 
-## 0. WORKSPACE — LEIA ANTES DE TUDO
+## 0. WORKSPACE — READ FIRST
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│  ESTA PASTA É O REPOSITÓRIO INTEIRO.                        │
-│  Cursor workspace = stealth_scraper/ (raiz)                 │
-│  A nova instância NÃO VÊ o monorepo pai.                    │
-│  NÃO EXISTE specs/011 nem sandbox_scraping daqui.           │
+│  THIS FOLDER IS THE ENTIRE REPOSITORY.                      │
+│  Cursor workspace = repo root                               │
+│  Self-contained — no parent monorepo paths.                 │
 └─────────────────────────────────────────────────────────────┘
 ```
 
-| Item | Caminho (relativo à raiz do workspace) |
+| Item | Path (relative to workspace root) |
 |---|---|
-| **Este plano** | `docs/PLAN.md` |
-| **Código atual (legado)** | `*.py` na raiz (`config.py`, `scraper.py`, …) |
-| **Código destino** | `src/foxcape/` |
+| **This plan** | `docs/PLAN.md` |
+| **Library source** | `src/foxcape/` |
 | **SpecKit spec** | `specs/001-initial-release/spec.md` |
 | **SpecKit plan** | `specs/001-initial-release/plan.md` |
 | **Constitution** | `.specify/memory/constitution.md` |
-| **Testes** | `tests/` (criar aqui; conteúdo na seção 12) |
+| **Tests** | `tests/` (see section 12) |
 | **Git remote** | `https://github.com/andreferraro/foxcape.git` |
 
-**Estado atual da raiz:** 13 módulos Python legados (`stealth_scraper` naming).  
-**Trabalho:** reorganizar in-place → lib Foxcape publicável. Não clonar outro repo. Não referenciar paths do monorepo.
+**Current state:** library lives under `src/foxcape/` with Foxcape public API. Root legacy modules removed.  
+**Remaining work:** SpecKit SDD artifacts, Camoufox mocks, publish workflow, PyPI release.
 
-**Prompt inicial (nova instância Cursor nesta pasta):**
+**Initial prompt (new Cursor instance in this folder):**
 
 ```
-Leia docs/PLAN.md. Workspace = raiz desta pasta only.
-Execute ciclo SpecKit SDD começando por /speckit-constitution.
-Código legado = os .py na raiz; migrar para src/foxcape/ com rename Foxcape.
-Não codar antes do gate /speckit-analyze.
+Read docs/PLAN.md. Workspace = this folder root only.
+Run SpecKit SDD cycle starting with /speckit-specify (constitution already ratified).
+Do not implement features before the /speckit-analyze gate.
 ```
 
 ---
 
-## 1. O que é Foxcape
+## 1. What is Foxcape
 
-Biblioteca Python de scraping indetectável para **qualquer desenvolvedor** (`pip install foxcape`).
+Undetectable Python scraping library for **any developer** (`pip install foxcape`).
 
-| Camada | Módulo | Função |
+| Layer | Module | Role |
 |---|---|---|
-| Motor stealth | Camoufox | Firefox patched, anti-fingerprint C++ |
+| Stealth engine | Camoufox | Patched Firefox, anti-fingerprint C++ |
 | Parsing | `parsers.py` | BeautifulSoup + lxml |
 | Mouse | `humanizer.py` | WindMouse |
-| Digitação | `turnstile_and_typing.py` | Biometria + Turnstile |
-| Ruído | `noise_injector.py` | Canvas/WebGL/Audio |
+| Typing | `turnstile_and_typing.py` | Biometrics + Turnstile |
+| Noise | `noise_injector.py` | Canvas/WebGL/Audio |
 | Hardware | `hardware_spoofing.py` | WebRTC, deviceMemory |
-| Cadência | `cadence.py` | Markov dwell time |
-| Perfis | `profiles.py` | Persistência + warmup |
+| Cadence | `cadence.py` | Markov dwell time |
+| Profiles | `profiles.py` | Persistence + warmup |
 | Proxies | `proxy_pool.py` | Round-robin, sticky |
 
 Classes: `Foxcape` (sync), `AsyncFoxcape` (async).
 
 ---
 
-## 2. Ciclo SpecKit SDD
+## 2. SpecKit SDD cycle
 
-Artefatos ficam **nesta pasta**, em `specs/001-initial-release/`:
+Artifacts live **in this repo** under `specs/001-initial-release/`:
 
 ```
-1. /speckit-constitution  → .specify/memory/constitution.md
-2. /speckit-specify       → specs/001-initial-release/spec.md
-3. /speckit-clarify       → GATE
-4. /speckit-plan          → plan.md, research.md, data-model.md, contracts/, quickstart.md
-5. /speckit-checklist     → checklists/*.md — GATE
-6. /speckit-tasks         → tasks.md
-7. /speckit-analyze       → GATE — NÃO codar antes
-8. /speckit-implement     → src/foxcape + tests + CI
+1. /speckit-constitution  → .specify/memory/constitution.md  [DONE]
+2. /speckit-specify       → specs/001-initial-release/spec.md  [DONE]
+3. /speckit-clarify       → GATE                             [DONE]
+4. /speckit-plan          → plan.md, research.md, data-model.md, contracts/, quickstart.md  [DONE]
+5. /speckit-checklist     → checklists/*.md — GATE           [DONE]
+6. /speckit-tasks         → tasks.md                         [DONE]
+7. /speckit-analyze       → GATE — DO NOT code before approval [DONE — see summary below]
+8. /speckit-implement     → remaining tasks in tasks.md
 9. /speckit-converge      → test-evidence.json + v0.1.0 PyPI
 ```
 
 Gitflow: `develop` (default) → `release/v0.1.0` → `main` + tag `v0.1.0`.
 
-Bootstrap git (se ainda não feito):
-
-```bash
-git init
-git remote add origin https://github.com/andreferraro/foxcape.git
-git checkout -b develop
-```
-
 ---
 
-## 3. Constitution (input `/speckit-constitution`)
+## 3. Constitution (input `/speckit-constitution`) — DONE
 
-```markdown
-# Foxcape Library Constitution
-
-## I. Public Library Boundary
-Zero coupling to consumer apps. Runtime deps: camoufox[geoip], beautifulsoup4, lxml only.
-
-## II. Deterministic Offline CI
-pytest -m "not live" blocks merge. No network, no camoufox fetch in default CI.
-
-## III. Camoufox-Only Engine
-Playwright not in public API (__all__). Internal use only.
-
-## IV. Ponytail / YAGNI
-No mypy strict, no full Playwright exception wrap, no multi-OS browser CI v1.
-
-## V. Stable Public API
-__all__ defines public surface. Semver from 0.1.0.
-
-Version: 1.0.0 | Ratified: 2026-08-19
-```
+See `.specify/memory/constitution.md`.
 
 ---
 
@@ -121,13 +91,13 @@ Version: 1.0.0 | Ratified: 2026-08-19
 
 ### US1 — pip install + scrape (P1)
 
-- **AC-001:** `pip install foxcape` + `python -m camoufox fetch` → scrape funciona
-- **TS-001:** `import foxcape` sem side effects
+- **AC-001:** `pip install foxcape` + `python -m camoufox fetch` → scrape works
+- **TS-001:** `import foxcape` has no side effects
 
 ### US2 — Async (P1)
 
-- **AC-002:** `AsyncFoxcape` / `afetch` paridade com sync
-- **TS-002:** `async with` fecha browser em erro
+- **AC-002:** `AsyncFoxcape` / `afetch` parity with sync
+- **TS-002:** `async with` closes browser on error
 
 ### US3 — Proxy + profiles (P2)
 
@@ -137,44 +107,41 @@ Version: 1.0.0 | Ratified: 2026-08-19
 ### US4 — LLM extraction (P2)
 
 - **AC-004:** `get_clean_text()`, `to_markdown()`, `extract_links()`
-- **TS-004:** Scripts removidos do clean text
+- **TS-004:** Scripts removed from clean text
 
 ### US5 — CI + PyPI (P2)
 
 - **AC-005:** CI ubuntu × py3.10–3.13, ruff+mypy+pytest offline
-- **TS-005:** CI sem camoufox fetch
+- **TS-005:** CI without camoufox fetch
 
 ### FR-001..008
 
-Pacote PyPI, __all__, context managers, exceções mínimas, mocks, README, GitHub Actions OIDC, Gitflow.
+PyPI package, __all__, context managers, minimal exceptions, mocks, README, GitHub Actions OIDC, Gitflow.
 
 ### Edge cases
 
-camoufox fetch ausente → erro claro; lxml fallback; parent.lock stale; proxy pool vazio; warmup parcial OK.
+Missing camoufox fetch → clear error; lxml fallback; stale parent.lock; empty proxy pool; partial warmup OK.
 
 ---
 
-## 5. Migração dos módulos (raiz → `src/foxcape/`)
+## 5. Module migration (root → `src/foxcape/`) — DONE
 
-**Origem:** arquivos `.py` **nesta raiz do workspace**.  
-**Destino:** `src/foxcape/`. Depois **deletar** `.py` legados da raiz.
-
-| Arquivo na raiz | Ação |
+| Source (legacy root) | Action |
 |---|---|
 | `config.py` | → `FoxcapeConfig` |
 | `models.py` | → `FoxcapeResult` |
-| `scraper.py` | → classe `Foxcape` |
-| `async_scraper.py` | → classe `AsyncFoxcape` |
+| `scraper.py` | → `Foxcape` class |
+| `async_scraper.py` | → `AsyncFoxcape` class |
 | `profiles.py` | `StealthScraper`→`Foxcape`, `to_foxcape_config()`, logger `foxcape.profiles` |
-| `humanizer.py`, `noise_injector.py`, `hardware_spoofing.py`, `turnstile_and_typing.py`, `cadence.py`, `parsers.py`, `proxy_pool.py` | mover, ajustar imports relativos |
-| `__init__.py` | novo __all__ (seção 6), `__version__ = "0.1.0"` |
-| `exceptions.py` | **criar** — FoxcapeError, BrowserStartupError |
+| `humanizer.py`, `noise_injector.py`, `hardware_spoofing.py`, `turnstile_and_typing.py`, `cadence.py`, `parsers.py`, `proxy_pool.py` | moved, relative imports |
+| `__init__.py` | public __all__ (section 6), `__version__ = "0.1.0"` |
+| `exceptions.py` | **created** — FoxcapeError, BrowserStartupError |
 
 ---
 
-## 6. API pública (`__all__`)
+## 6. Public API (`__all__`)
 
-| Legado | Foxcape |
+| Legacy | Foxcape |
 |---|---|
 | `StealthScraper` | `Foxcape` |
 | `AsyncStealthScraper` | `AsyncFoxcape` |
@@ -202,9 +169,9 @@ __all__ = [
 
 ---
 
-## 7. FoxcapeConfig — todos os campos
+## 7. FoxcapeConfig — all fields
 
-| Campo | Tipo | Default |
+| Field | Type | Default |
 |---|---|---|
 | headless | bool \| "virtual" | False |
 | humanize | bool \| float | True |
@@ -238,21 +205,21 @@ __all__ = [
 
 ---
 
-## 8. Classes principais
+## 8. Core classes
 
-**FoxcapeResult:** `from_html`, `select_one`, `select`, `get_clean_text`, `extract_links`, `to_markdown`. Campos: url, html, soup, status_code, title.
+**FoxcapeResult:** `from_html`, `select_one`, `select`, `get_clean_text`, `extract_links`, `to_markdown`. Fields: url, html, soup, status_code, title.
 
 **Foxcape:** `__enter__`/`__exit__`, `start`, `close`, `page`, `get`, `fetch`, `type_human`, `evaluate`.
 
 **AsyncFoxcape:** `__aenter__`/`__aexit__`, `get_page`, `get`, `afetch`, `type_human`, `aevaluate`.
 
-**BrowserProfile:** `warmup(category, steps)`, `to_foxcape_config()`, `is_warm`, `age_days`. Categorias warmup: general, sports, ecommerce.
+**BrowserProfile:** `warmup(category, steps)`, `to_foxcape_config()`, `is_warm`, `age_days`. Warmup categories: general, sports, ecommerce.
 
 **ProxyPoolManager:** `add_proxy`, `get_proxy(strategy, session_id)`.
 
 ---
 
-## 9. Exemplos README / quickstart.md
+## 9. README / quickstart examples
 
 ```bash
 pip install foxcape
@@ -291,20 +258,22 @@ with Foxcape(p.to_foxcape_config()) as fox:
     print(fox.get("https://example.com").title)
 ```
 
-Disclaimer obrigatório: uso responsável, respeitar ToS e leis.
+Required disclaimer: use responsibly; respect site ToS and applicable laws.
 
 ---
 
-## 10. Estrutura final (tudo dentro desta pasta)
+## 10. Final structure (everything in this repo)
 
 ```text
-./                              ← workspace root (Cursor abre AQUI)
-├── docs/PLAN.md                ← este arquivo
+./                              ← workspace root
+├── docs/PLAN.md                ← this file
+├── docs/ARCHITECTURE.md
+├── docs/GITFLOW.md
 ├── specs/001-initial-release/
 ├── .specify/memory/constitution.md
 ├── .github/workflows/ci.yml
-├── .github/workflows/publish.yml
-├── src/foxcape/                ← módulos migrados da raiz
+├── .github/workflows/publish.yml   ← TODO
+├── src/foxcape/
 │   ├── __init__.py
 │   ├── py.typed
 │   └── ...
@@ -318,121 +287,49 @@ Disclaimer obrigatório: uso responsável, respeitar ToS e leis.
 
 ---
 
-## 11. pyproject.toml completo
+## 11. pyproject.toml (reference)
 
-```toml
-[project]
-name = "foxcape"
-version = "0.1.0"
-description = "Undetectable web scraping powered by Camoufox, BeautifulSoup and anti-bot evasions"
-readme = "README.md"
-license = "MIT"
-requires-python = ">=3.10,<4.0"
-authors = [{ name = "Andre Ferraro" }]
-keywords = ["scraping", "camoufox", "anti-bot", "stealth", "web-scraping"]
-classifiers = [
-    "Development Status :: 4 - Beta",
-    "Intended Audience :: Developers",
-    "License :: OSI Approved :: MIT License",
-    "Programming Language :: Python :: 3",
-    "Topic :: Internet :: WWW/HTTP",
-    "Typing :: Typed",
-]
-dependencies = [
-    "camoufox[geoip]>=0.5.4,<0.6.0",
-    "beautifulsoup4>=4.15.0,<5.0.0",
-    "lxml>=6.1.1,<7.0.0",
-]
-
-[project.urls]
-Homepage = "https://github.com/andreferraro/foxcape"
-Repository = "https://github.com/andreferraro/foxcape"
-Issues = "https://github.com/andreferraro/foxcape/issues"
-
-[build-system]
-requires = ["hatchling>=1.27.0"]
-build-backend = "hatchling.build"
-
-[tool.hatch.build.targets.wheel]
-packages = ["src/foxcape"]
-
-[dependency-groups]
-dev = ["pytest>=9", "pytest-asyncio>=1.4", "ruff>=0.9", "mypy>=1.15", "pre-commit>=4"]
-
-[tool.pytest.ini_options]
-testpaths = ["tests"]
-addopts = "-m 'not live' -v"
-asyncio_mode = "auto"
-markers = ["live: requires camoufox browser and network"]
-
-[tool.ruff]
-target-version = "py310"
-line-length = 120
-
-[tool.ruff.lint]
-select = ["E", "W", "F", "I", "B", "UP"]
-
-[tool.mypy]
-python_version = "3.10"
-check_untyped_defs = true
-ignore_missing_imports = true
-```
+See root `pyproject.toml` for the live config (hatchling, uv dev groups, ruff, mypy, pytest markers).
 
 ---
 
-## 12. Testes (criar em `tests/` nesta pasta)
+## 12. Tests (`tests/`)
 
-### conftest.py
+### conftest.py — DONE
 
-```python
-import pytest
-from foxcape import FoxcapeConfig
+Shared fixtures: `default_config`, `sample_html`.
 
-SAMPLE_HTML = """<!DOCTYPE html><html><head><title>Test Page</title></head>
-<body><header><nav><a href="/home">Home</a></nav></header>
-<main><h1>Main Heading</h1><p>Paragraph<script>console.log("x");</script></p></main>
-</body></html>"""
+### test_config.py — DONE
 
-@pytest.fixture
-def default_config():
-    return FoxcapeConfig(headless=True, humanize=False, simulate_mouse=False)
+Default values for FoxcapeConfig fields.
 
-@pytest.fixture
-def sample_html():
-    return SAMPLE_HTML
-```
+### test_models.py — DONE
 
-### test_config.py
+`FoxcapeResult.from_html` parsing, clean text, markdown.
 
-Defaults: headless=False, humanize=True, simulate_mouse=True, canvas/audio/hardware/turnstile/markov=True, geoip=True, wait_until=domcontentloaded, timeout=30000, parser=lxml.
-
-### test_models.py
-
-`FoxcapeResult.from_html(SAMPLE_HTML)` → title "Test Page", h1 "Main Heading", 3 links, clean text sem console.log, markdown com heading.
-
-### test_humanizer.py
+### test_humanizer.py — TODO
 
 `generate_windmouse_path(100,100,500,400)` → len>5, final point (500,400), delay>0.
 
-### test_public_api.py
+### test_public_api.py — DONE
 
-`__version__`, exports Foxcape/AsyncFoxcape/FoxcapeConfig/FoxcapeResult/ProfileManager; ProxyPoolManager round_robin + sticky.
+`__version__`, exports, ProxyPoolManager round_robin + sticky.
 
-### test_foxcape.py / test_async_foxcape.py
+### test_foxcape.py / test_async_foxcape.py — TODO
 
-Mock `camoufox.sync_api.Camoufox` / `AsyncCamoufox` — fake page, goto status 200, lifecycle with context manager.
+Mock `camoufox.sync_api.Camoufox` / `AsyncCamoufox` — fake page, goto status 200, context manager lifecycle.
 
-### test_integration.py
+### test_integration.py — TODO
 
-`@pytest.mark.live` — example.com sync+async; **fora do CI default**.
+`@pytest.mark.live` — example.com sync+async; **excluded from default CI**.
 
 ---
 
 ## 13. CI/CD
 
-**ci.yml:** push/PR em develop+main; matrix py3.10–3.13 ubuntu; uv sync; ruff; mypy src/foxcape; pytest.
+**ci.yml:** DONE — push/PR on develop+main; matrix py3.10–3.13 ubuntu; uv sync; ruff; mypy; pytest.
 
-**publish.yml:** tag v*; uv build; pypa/gh-action-pypi-publish OIDC.
+**publish.yml:** TODO — tag v*; uv build; pypa/gh-action-pypi-publish OIDC.
 
 **PyPI Trusted Publisher:** owner `andreferraro`, repo `foxcape`, workflow `publish.yml`.
 
@@ -451,7 +348,7 @@ git push origin main develop --tags
 
 ---
 
-## 15. pre-commit
+## 15. pre-commit — DONE
 
 ruff + ruff-format + trailing-whitespace + end-of-file-fixer + check-yaml + check-toml.
 
@@ -459,7 +356,7 @@ ruff + ruff-format + trailing-whitespace + end-of-file-fixer + check-yaml + chec
 
 ## 16. tasks.md (input `/speckit-tasks`)
 
-### Phase 1 — Bootstrap
+### Phase 1 — Bootstrap — DONE
 
 - T001 pyproject.toml, uv.lock, .gitignore, LICENSE MIT
 - T002 src/foxcape/py.typed + hatchling layout
@@ -467,59 +364,51 @@ ruff + ruff-format + trailing-whitespace + end-of-file-fixer + check-yaml + chec
 - T004 pre-commit, ruff, mypy, pytest markers
 - T005 git init + remote origin + branch develop
 
-### Phase 2 — Migrar código (raiz → src/foxcape)
+### Phase 2 — Migrate code (root → src/foxcape) — DONE
 
-- T006 Mover config.py → FoxcapeConfig
-- T007 Mover models.py → FoxcapeResult
-- T008 Criar exceptions.py
-- T009 Mover proxy_pool, parsers, cadence, humanizer, noise, hardware, turnstile
-- T010 Mover scraper.py → Foxcape
-- T011 Mover async_scraper.py → AsyncFoxcape
-- T012 Mover profiles.py + renames
-- T013 Montar __init__.py __all__
-- T014 Remover .py legados da raiz
+- T006–T014 module migration and Foxcape renames
 
-### Phase 3 — Testes
+### Phase 3 — Tests — PARTIAL
 
-- T015 Criar tests/ (seção 12)
-- T016 Mocks Camoufox
-- T17 pytest offline verde
+- T015 tests/ scaffold — DONE
+- T016 Camoufox mocks — TODO
+- T17 offline pytest green — DONE (baseline)
 
-### Phase 4 — Publish
+### Phase 4 — Publish — TODO
 
 - T018 README + quickstart
-- T019 GitHub Actions
+- T019 GitHub Actions publish workflow
 - T020 PyPI Trusted Publisher
 - T021 Release v0.1.0
 
-### Phase 5 — Converge
+### Phase 5 — Converge — TODO
 
 - T022 speckit-converge + test-evidence.json
 
 ---
 
-## 17. research.md (decisões)
+## 17. research.md (decisions)
 
-| Decisão | Escolha |
+| Decision | Choice |
 |---|---|
-| PyPI name | foxcape (stealth-scraper ocupado) |
+| PyPI name | foxcape (stealth-scraper taken) |
 | Build | hatchling + PEP 621 |
 | PM | uv |
 | Layout | src/foxcape |
 | Python | >=3.10 |
-| Mypy | pragmático |
+| Mypy | pragmatic |
 | CI OS | ubuntu only |
 
 ---
 
-## 18. Checklist Gemini
+## 18. Scope checklist
 
-**Sim:** src layout, hatchling, uv, py.typed, __all__, exceções mínimas, ruff, pre-commit, pytest+mock, README, CI ubuntu×py3.10–3.13, OIDC, Gitflow.
+**In scope:** src layout, hatchling, uv, py.typed, __all__, minimal exceptions, ruff, pre-commit, pytest+mock, README, CI ubuntu×py3.10–3.13, OIDC, Gitflow.
 
-**Não:** mypy strict, CI multi-OS browser, wrap all Playwright, Sphinx, aliases stealth_scraper.
+**Out of scope v1:** mypy strict, multi-OS browser CI, wrap all Playwright errors, Sphinx, stealth_scraper aliases.
 
 ---
 
-## 19. Fora de escopo deste repo
+## 19. Out of scope for this repo
 
-Integração com monorepo/workers/RabbitMQ/PostgreSQL. Consumidores legados trocam `stealth_scraper` por `foxcape` depois do PyPI — não documentar aqui.
+Integration with monorepo/workers/RabbitMQ/PostgreSQL. Legacy consumers switch from `stealth_scraper` to `foxcape` after PyPI — not documented here.

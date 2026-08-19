@@ -79,8 +79,10 @@ class Foxcape:
     def evaluate(self, expression: str, arg: Any | None = None) -> Any:
         """Evaluates JavaScript expression in the active Camoufox page context."""
         if arg is not None:
-            return self.page.evaluate(expression, arg)
-        return self.page.evaluate(expression)
+            return self.page.evaluate(  # NOSONAR: public API intentionally evaluates caller-provided JS.
+                expression, arg
+            )
+        return self.page.evaluate(expression)  # NOSONAR: public API intentionally evaluates caller-provided JS.
 
     def type_human(self, selector: str, text: str, typo_probability: float = 0.04, wpm_speed: float = 65.0) -> None:
         """Types into an input with authentic human biometrics."""

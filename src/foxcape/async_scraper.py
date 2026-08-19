@@ -77,8 +77,10 @@ class AsyncFoxcape:
     async def aevaluate(self, expression: str, arg: Any | None = None) -> Any:
         page = await self.get_page()
         if arg is not None:
-            return await page.evaluate(expression, arg)
-        return await page.evaluate(expression)
+            return await page.evaluate(  # NOSONAR: public API intentionally evaluates caller-provided JS.
+                expression, arg
+            )
+        return await page.evaluate(expression)  # NOSONAR: public API intentionally evaluates caller-provided JS.
 
     async def type_human(
         self, selector: str, text: str, typo_probability: float = 0.04, wpm_speed: float = 65.0

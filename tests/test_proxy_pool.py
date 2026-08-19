@@ -30,6 +30,11 @@ def test_proxy_config_from_url_defaults() -> None:
     assert socks.server == "socks5://proxy.test:1080"
 
 
+def test_proxy_config_from_url_requires_hostname() -> None:
+    with pytest.raises(ValueError, match="hostname"):
+        ProxyConfig.from_url("http://")
+
+
 def test_proxy_config_to_playwright_dict_omits_empty_credentials() -> None:
     cfg = ProxyConfig(server="http://proxy:8080")
     assert cfg.to_playwright_dict() == {"server": "http://proxy:8080"}

@@ -1,64 +1,82 @@
-# Arquitetura — Foxcape
+# Architecture — Foxcape
 
-Biblioteca Python publicável (`pip install foxcape`). Zero acoplamento com apps consumidoras.
+Publishable Python library (`pip install foxcape`). No coupling to consumer applications.
 
-## Layout do repositório
+## Repository layout
 
 ```text
 foxcape/
-├── src/foxcape/          # código da lib (único pacote publicado)
-├── tests/                # pytest offline por padrão
-├── docs/                 # plano, gitflow, arquitetura
-├── specs/                # artefatos SpecKit (SDD)
-├── .specify/             # infra SpecKit (templates, scripts)
-├── .cursor/              # MCP + skills Cursor
-├── .agents/skills/       # skills instaladas (SpecKit, Graphify, Ponytail)
-├── .github/workflows/    # CI
+├── src/foxcape/          # library code (only package published to PyPI)
+├── tests/                # pytest (offline by default; live opt-in)
+├── docs/                 # plan, gitflow, architecture
+├── specs/                # SpecKit SDD artifacts
+├── .specify/             # SpecKit infrastructure (templates, scripts)
+├── .cursor/              # Cursor MCP + skills
+├── .agents/skills/       # installed agent skills (SpecKit, Graphify, Ponytail)
+├── .github/workflows/    # CI, publish, SonarQube
 ├── pyproject.toml        # PEP 621 + hatchling
-├── Makefile              # quality gates locais
+├── Makefile              # local quality gates
 └── README.md
 ```
 
-**Regra:** nenhum módulo Python da lib na raiz do repo. Tudo vive em `src/foxcape/`.
+**Rule:** no library Python modules at the repo root. Everything lives under `src/foxcape/`.
 
-## Camadas internas (`src/foxcape/`)
+## Internal layers (`src/foxcape/`)
 
-| Módulo | Responsabilidade |
-|--------|------------------|
-| `scraper.py` / `async_scraper.py` | Facade sync/async (`Foxcape`, `AsyncFoxcape`) — lifecycle Camoufox |
-| `config.py` | `FoxcapeConfig` — dataclass de configuração |
-| `models.py` | `FoxcapeResult` — HTML parseado + helpers LLM |
+| Module | Responsibility |
+|--------|----------------|
+| `scraper.py` / `async_scraper.py` | Sync/async facade (`Foxcape`, `AsyncFoxcape`) — Camoufox lifecycle |
+| `camoufox_launch.py` | Shared launch kwargs, page resolution, evasion injection |
+| `scrape_cadence.py` | Post-navigation human delay / mouse activity |
+| `config.py` | `FoxcapeConfig` — settings dataclass |
+| `models.py` | `FoxcapeResult` — parsed HTML + LLM helpers |
 | `exceptions.py` | `FoxcapeError`, `BrowserStartupError` |
-| `humanizer.py` | WindMouse + atividade humana |
-| `cadence.py` | Markov dwell time |
-| `noise_injector.py` | Canvas/WebGL/Audio noise |
-| `hardware_spoofing.py` | WebRTC, deviceMemory |
-| `turnstile_and_typing.py` | Turnstile + digitação biométrica |
-| `parsers.py` | BeautifulSoup / lxml |
-| `profiles.py` | Perfis persistentes + warmup |
-| `proxy_pool.py` | Pool round-robin / sticky |
-| `__init__.py` | API pública via `__all__` |
+| `humanizer.py` | WindMouse paths + organic browsing activity |
+| `cadence.py` | Markov dwell-time simulator |
+| `noise_injector.py` | Canvas / WebGL / audio fingerprint noise |
+| `hardware_spoofing.py` | WebRTC, deviceMemory, permissions consistency |
+| `turnstile_and_typing.py` | Cloudflare Turnstile + biometric typing |
+| `parsers.py` | BeautifulSoup / lxml extraction |
+| `profiles.py` | Persistent browser profiles + warmup |
+| `proxy_pool.py` | Round-robin / random / sticky proxy pool |
+| `rng.py` | Non-cryptographic randomness for human-like behavior |
+| `__init__.py` | Public API via `__all__` |
 
-## API pública
+## Public API
 
-Definida exclusivamente por `foxcape.__all__`. Playwright/Camoufox internals **não** são exportados.
+Defined exclusively by `foxcape.__all__`. Playwright/Camoufox internals are **not** exported.
 
 ```python
 from foxcape import Foxcape, FoxcapeConfig, FoxcapeResult
 ```
 
-## Dependências runtime
+See [specs/001-initial-release/contracts/public-api.md](../specs/001-initial-release/contracts/public-api.md).
 
-- `camoufox[geoip]` — motor stealth (único browser engine)
-- `beautifulsoup4` + `lxml` — parsing
+## Runtime dependencies
+
+- `camoufox[geoip]` — stealth browser engine (sole engine)
+- `beautifulsoup4` + `lxml` — HTML parsing
 
 ## Quality gates
 
-- **Offline CI:** `pytest -m "not live"` — sem rede, sem `camoufox fetch`
-- **Lint/format:** ruff
-- **Types:** mypy pragmático (não strict)
-- **YAGNI:** Ponytail constitution — sem mypy strict, sem CI multi-OS browser v1
+| Gate | Command | Notes |
+|------|---------|-------|
+| Full check | `make check` | format + lint + mypy + offline pytest |
+| Offline tests | `pytest` | excludes `@pytest.mark.live` by default |
+| Live tests | `pytest -m live` | requires `python -m camoufox fetch` + network |
+| Lint/format | `ruff check` / `ruff format` | src + tests |
+| Types | `mypy src/foxcape` | pragmatic (not strict) |
 
-## Agent tooling (fora do pacote PyPI)
+**CI:** Ubuntu × Python 3.10–3.13; no Camoufox download; no network in default pytest.
 
-Skills em `.agents/skills/` e `.cursor/skills/` **não** entram no wheel. Graphify instala runtime via `uv tool install graphify` quando invocado.
+**YAGNI (v0.1.0):** no strict mypy, no multi-OS browser CI, no legacy `stealth_scraper` aliases.
+
+## Test suite (offline)
+
+126 offline tests + 2 live integration tests (`test_integration.py`). Coverage ~96% on `src/foxcape/` (see `specs/001-initial-release/test-evidence.json`).
+
+Categories: unit (parsers, proxy, cadence), mocked integration (sync/async scraper, turnstile, profiles), contract/smoke, Hypothesis property tests (`test_humanizer_properties.py`).
+
+## Agent tooling (outside the PyPI wheel)
+
+Skills under `.agents/skills/` and `.cursor/skills/` are **not** packaged. Graphify installs its runtime via `uv tool install graphify` when invoked.

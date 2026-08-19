@@ -34,6 +34,7 @@ def test_build_camoufox_kwargs_full_options(tmp_path: Path) -> None:
         block_images=True,
         block_webrtc=True,
         block_webgl=True,
+        enable_cache=True,
         window=(1280, 720),
         locale="pt-BR",
         fonts=["Arial"],
@@ -47,6 +48,7 @@ def test_build_camoufox_kwargs_full_options(tmp_path: Path) -> None:
     assert kwargs["disable_coop"] is True
     assert kwargs["i_know_what_im_doing"] is True
     assert kwargs["block_images"] is True
+    assert kwargs["enable_cache"] is True
     assert kwargs["proxy"]["server"] == "http://proxy:8080"
     assert kwargs["user_data_dir"] == str(tmp_path / "profile")
     assert kwargs["persistent_context"] is True

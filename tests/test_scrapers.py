@@ -135,12 +135,23 @@ def test_sync_scraper_lifecycle_and_get(monkeypatch: pytest.MonkeyPatch, tmp_pat
     FakeCamoufox.exited = False
 
     monkeypatch.setattr("foxcape.scraper.Camoufox", FakeCamoufox)
-    monkeypatch.setattr("foxcape.scraper.inject_fingerprint_noise", lambda p, seed=None: calls.append(f"noise:{seed}"))
-    monkeypatch.setattr("foxcape.scraper.inject_hardware_and_webrtc_spoofing", lambda p: calls.append("hardware"))
+    monkeypatch.setattr(
+        "foxcape.camoufox_launch.inject_fingerprint_noise",
+        lambda p, seed=None: calls.append(f"noise:{seed}"),
+    )
+    monkeypatch.setattr(
+        "foxcape.camoufox_launch.inject_hardware_and_webrtc_spoofing",
+        lambda p: calls.append("hardware"),
+    )
     monkeypatch.setattr("foxcape.scraper.solve_turnstile_if_present", lambda p: calls.append("turnstile"))
-    monkeypatch.setattr("foxcape.scraper.perform_human_activity", lambda p, max_duration_sec: calls.append("activity"))
-    monkeypatch.setattr("foxcape.scraper.MarkovCadence.calculate_reading_dwell_time", lambda *args, **kwargs: 0.1)
-    monkeypatch.setattr("foxcape.scraper.time.sleep", lambda _: calls.append("sleep"))
+    monkeypatch.setattr(
+        "foxcape.scraper.apply_sync_human_cadence",
+        lambda *args, **kwargs: calls.append("activity"),
+    )
+    monkeypatch.setattr(
+        "foxcape.scrape_cadence.MarkovCadence.calculate_reading_dwell_time",
+        lambda *args, **kwargs: 0.1,
+    )
 
     scraper = Foxcape(rich_config(tmp_path))
     assert scraper.evaluate("1 + 1", {"x": 1}) == ("1 + 1", {"x": 1})
@@ -161,9 +172,9 @@ def test_sync_scraper_lifecycle_and_get(monkeypatch: pytest.MonkeyPatch, tmp_pat
 def test_sync_scraper_uses_new_page_and_fetch(monkeypatch: pytest.MonkeyPatch) -> None:
     FakeCamoufox.browser = FakeBrowser(None)
     monkeypatch.setattr("foxcape.scraper.Camoufox", FakeCamoufox)
-    monkeypatch.setattr("foxcape.scraper.inject_fingerprint_noise", lambda p, seed=None: None)
-    monkeypatch.setattr("foxcape.scraper.inject_hardware_and_webrtc_spoofing", lambda p: None)
-    monkeypatch.setattr("foxcape.scraper.time.sleep", lambda _: None)
+    monkeypatch.setattr("foxcape.camoufox_launch.inject_fingerprint_noise", lambda p, seed=None: None)
+    monkeypatch.setattr("foxcape.camoufox_launch.inject_hardware_and_webrtc_spoofing", lambda p: None)
+    monkeypatch.setattr("foxcape.scraper.apply_sync_human_cadence", lambda *args, **kwargs: None)
 
     scraper = Foxcape(FoxcapeConfig(simulate_mouse=False, solve_turnstile=False, use_markov_cadence=False))
     scraper.start()
@@ -207,19 +218,18 @@ async def test_async_scraper_lifecycle_and_get(monkeypatch: pytest.MonkeyPatch, 
     async def async_turnstile(p) -> None:
         calls.append("turnstile")
 
-    async def async_activity(p, max_duration_sec) -> None:
+    async def async_activity(*args, **kwargs) -> None:
         calls.append("activity")
 
-    async def async_sleep(delay: float) -> None:
-        calls.append("sleep")
-
     monkeypatch.setattr("foxcape.async_scraper.AsyncCamoufox", AsyncFakeCamoufox)
-    monkeypatch.setattr("foxcape.async_scraper.async_inject_fingerprint_noise", async_noise)
-    monkeypatch.setattr("foxcape.async_scraper.async_inject_hardware_and_webrtc_spoofing", async_hardware)
+    monkeypatch.setattr("foxcape.camoufox_launch.async_inject_fingerprint_noise", async_noise)
+    monkeypatch.setattr("foxcape.camoufox_launch.async_inject_hardware_and_webrtc_spoofing", async_hardware)
     monkeypatch.setattr("foxcape.async_scraper.async_solve_turnstile_if_present", async_turnstile)
-    monkeypatch.setattr("foxcape.async_scraper.async_perform_human_activity", async_activity)
-    monkeypatch.setattr("foxcape.async_scraper.MarkovCadence.calculate_reading_dwell_time", lambda *args, **kwargs: 0.1)
-    monkeypatch.setattr("foxcape.async_scraper.asyncio.sleep", async_sleep)
+    monkeypatch.setattr("foxcape.async_scraper.apply_async_human_cadence", async_activity)
+    monkeypatch.setattr(
+        "foxcape.scrape_cadence.MarkovCadence.calculate_reading_dwell_time",
+        lambda *args, **kwargs: 0.1,
+    )
 
     scraper = AsyncFoxcape(rich_config(tmp_path))
     assert await scraper.aevaluate("window.x", 1) == ("window.x", 1)
@@ -242,8 +252,9 @@ async def test_async_scraper_new_page_fetch_and_raise(monkeypatch: pytest.Monkey
         return None
 
     monkeypatch.setattr("foxcape.async_scraper.AsyncCamoufox", AsyncFakeCamoufox)
-    monkeypatch.setattr("foxcape.async_scraper.async_inject_fingerprint_noise", noop)
-    monkeypatch.setattr("foxcape.async_scraper.async_inject_hardware_and_webrtc_spoofing", noop)
+    monkeypatch.setattr("foxcape.camoufox_launch.async_inject_fingerprint_noise", noop)
+    monkeypatch.setattr("foxcape.camoufox_launch.async_inject_hardware_and_webrtc_spoofing", noop)
+    monkeypatch.setattr("foxcape.async_scraper.apply_async_human_cadence", noop)
 
     scraper = AsyncFoxcape(FoxcapeConfig(simulate_mouse=False, solve_turnstile=False, use_markov_cadence=False))
     await scraper.start()

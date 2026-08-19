@@ -114,8 +114,8 @@ class AsyncPage(Page):
 
 
 def test_markov_dwell_and_sequence(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr("foxcape.cadence.random.paretovariate", lambda alpha: 1.0)
-    monkeypatch.setattr("foxcape.cadence.random.choices", lambda choices, weights: [choices[-1]])
+    monkeypatch.setattr("foxcape.cadence.rng.paretovariate", lambda alpha: 1.0)
+    monkeypatch.setattr("foxcape.cadence.rng.choices", lambda choices, weights: [choices[-1]])
 
     assert MarkovCadence.calculate_reading_dwell_time("hello", min_seconds=0.5, max_seconds=2.0) == 0.9
     assert MarkovCadence.generate_behavioral_sequence(max_steps=3)[0][0] == "SCAN_HEADER"
@@ -138,8 +138,8 @@ def test_perform_human_activity(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr("foxcape.humanizer.time.time", lambda: next(times))
     monkeypatch.setattr("foxcape.humanizer.time.sleep", lambda _: None)
     monkeypatch.setattr("foxcape.humanizer.simulate_human_mouse_movement", lambda page, x, y: None)
-    monkeypatch.setattr("foxcape.humanizer.random.random", lambda: 0.2)
-    monkeypatch.setattr("foxcape.humanizer.random.randint", lambda a, b: 80)
+    monkeypatch.setattr("foxcape.humanizer.rng.rand_float", lambda: 0.2)
+    monkeypatch.setattr("foxcape.humanizer.rng.randint", lambda a, b: 80)
 
     page = Page()
     perform_human_activity(page, max_duration_sec=0.5)  # type: ignore[arg-type]
@@ -167,8 +167,8 @@ async def test_async_perform_human_activity(monkeypatch: pytest.MonkeyPatch) -> 
     times = itertools.chain([0.0, 0.0, 0.1, 1.0])
     monkeypatch.setattr("foxcape.humanizer.time.time", lambda: next(times))
     monkeypatch.setattr("foxcape.humanizer.async_simulate_human_mouse_movement", lambda page, x, y: None)
-    monkeypatch.setattr("foxcape.humanizer.random.random", lambda: 0.2)
-    monkeypatch.setattr("foxcape.humanizer.random.randint", lambda a, b: 80)
+    monkeypatch.setattr("foxcape.humanizer.rng.rand_float", lambda: 0.2)
+    monkeypatch.setattr("foxcape.humanizer.rng.randint", lambda a, b: 80)
 
     async def fake_sleep(delay: float) -> None:
         return None
@@ -186,8 +186,9 @@ async def test_async_perform_human_activity(monkeypatch: pytest.MonkeyPatch) -> 
 
 def test_human_type_without_typos(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr("foxcape.turnstile_and_typing.time.sleep", lambda _: None)
-    monkeypatch.setattr("foxcape.turnstile_and_typing.random.random", lambda: 1.0)
-    monkeypatch.setattr("foxcape.turnstile_and_typing.random.lognormvariate", lambda mu, sigma: 0.01)
+    monkeypatch.setattr("foxcape.turnstile_and_typing.rng.uniform", lambda a, b: 0.05)
+    monkeypatch.setattr("foxcape.turnstile_and_typing.rng.rand_float", lambda: 1.0)
+    monkeypatch.setattr("foxcape.turnstile_and_typing.rng.lognormvariate", lambda mu, sigma: 0.01)
 
     page = Page()
     human_type(page, "#field", "Ab", typo_probability=0.0)  # type: ignore[arg-type]
@@ -197,9 +198,10 @@ def test_human_type_without_typos(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 async def test_async_human_type_with_typo(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr("foxcape.turnstile_and_typing.random.random", lambda: 0.0)
-    monkeypatch.setattr("foxcape.turnstile_and_typing.random.choice", lambda items: items[0])
-    monkeypatch.setattr("foxcape.turnstile_and_typing.random.lognormvariate", lambda mu, sigma: 0.01)
+    monkeypatch.setattr("foxcape.turnstile_and_typing.rng.uniform", lambda a, b: 0.05)
+    monkeypatch.setattr("foxcape.turnstile_and_typing.rng.rand_float", lambda: 0.0)
+    monkeypatch.setattr("foxcape.turnstile_and_typing.rng.choice", lambda items: items[0])
+    monkeypatch.setattr("foxcape.turnstile_and_typing.rng.lognormvariate", lambda mu, sigma: 0.01)
 
     async def fake_sleep(delay: float) -> None:
         return None

@@ -19,7 +19,7 @@ permissions:
 
 jobs:
   sonarqube:
-    name: SonarQube Quality Gate
+    name: SonarQube Scan
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -45,7 +45,3 @@ jobs:
         uses: SonarSource/sonarqube-scan-action@v8.2.1
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        with:
-          args: >
-            -Dsonar.qualitygate.wait=true
-            -Dsonar.qualitygate.timeout=600

@@ -53,4 +53,4 @@ git push origin main develop --tags
 
 - **Default branch:** `develop`
 - **PR base:** `develop` (features) or `main` (releases/hotfixes)
-- **Protected branches:** require `SonarQube / SonarQube Quality Gate` on `develop` and `main` before merge
+- **Protected branches:** require `SonarCloud Code Analysis` on `develop` and `main` before merge

@@ -1,8 +1,26 @@
+<p align="center">
+  <img src="https://raw.githubusercontent.com/andreferraro/foxcape/main/assets/logo.png" alt="Foxcape — undetectable Python web scraping" width="560">
+</p>
+
 # Foxcape
 
 Undetectable Python web scraping library — [Camoufox](https://camoufox.com/) stealth browser, BeautifulSoup parsing, and layered anti-bot evasions in one `pip install`.
 
 **Python** `>=3.10` · **License** MIT · **Import** `from foxcape import Foxcape, FoxcapeConfig, FoxcapeResult`
+
+---
+
+## Stealth roadmap
+
+Foxcape aims for **maximum bot-detection mitigation** through seven layered defenses: transport, fingerprint, runtime JS, behavior, network patterns, challenges, and session reputation.
+
+The full phased plan — identity coherence (v0.2), production biometrics (v0.3), profile aging (v0.4), challenge resilience (v0.5), and stealth observability (v0.6+) — lives in **[docs/ROADMAP.md](docs/ROADMAP.md)**. That document is the strategic input for SpecKit SDD cycles and defines exit criteria for each release.
+
+| Release | Focus |
+|---------|--------|
+| **v0.1.x** *(now)* | Initial PyPI release, measurement baseline |
+| **v0.2** | Identity coherence + hybrid browser→HTTP sessions |
+| **v0.3+** | Biometrics, profile reputation, CAPTCHAs, diagnostics |
 
 ---
 
@@ -273,8 +291,9 @@ Default branch: **`develop`**. See [GitFlow](docs/GITFLOW.md).
 ## Links
 
 - [GitHub](https://github.com/andreferraro/foxcape)
+- [**Stealth roadmap**](docs/ROADMAP.md) — phased detection mitigation plan (v0.2–v0.6+)
 - [Architecture](docs/ARCHITECTURE.md) — module map and quality gates
-- [Master plan](docs/PLAN.md) — roadmap and release checklist
+- [Master plan](docs/PLAN.md) — v0.1.0 release checklist and SpecKit artifacts
 
 ---
 

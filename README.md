@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/andreferraro/foxcape/develop/assets/logo.png" alt="Foxcape — undetectable Python web scraping" width="560">
+  <img src="https://raw.githubusercontent.com/andreferraro/foxcape/main/assets/logo.png" alt="Foxcape — undetectable Python web scraping" width="560">
 </p>
 
 # Foxcape

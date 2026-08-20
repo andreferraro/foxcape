@@ -19,7 +19,7 @@ from foxcape import (
 
 
 def test_version() -> None:
-    assert foxcape.__version__ == "0.1.0"
+    assert foxcape.__version__ == "0.1.1"
 
 
 def test_all_exports_importable() -> None:

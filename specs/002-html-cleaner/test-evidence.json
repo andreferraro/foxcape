@@ -1,0 +1,195 @@
+{
+  "schema_version": "1.0",
+  "target": "src/foxcape/cleaner/cleaner.py",
+  "support_status": "adaptable",
+  "classification": {
+    "purpose": [
+      "regression",
+      "functional_verification",
+      "contract_compliance"
+    ],
+    "level": [
+      "unit",
+      "integration"
+    ],
+    "quality_attributes": [
+      "correctness",
+      "performance",
+      "safety",
+      "maintainability"
+    ],
+    "techniques": [
+      "risk_based",
+      "mutation_testing",
+      "boundary_analysis"
+    ]
+  },
+  "basis": [
+    {
+      "type": "prd",
+      "reference": "docs/PRD_cleaner.md"
+    },
+    {
+      "type": "spec",
+      "reference": "specs/002-html-cleaner/spec.md"
+    },
+    {
+      "type": "checklist",
+      "reference": "specs/002-html-cleaner/checklists/cleaner.md"
+    },
+    {
+      "type": "contracts",
+      "reference": "specs/002-html-cleaner/contracts/cleaner-api.md"
+    }
+  ],
+  "risks": [
+    {
+      "id": "RSK-001",
+      "description": "Ad and widget scripts polluting scraped DOM or causing memory bloat",
+      "impact": "Degraded scraping quality and slower downstream extraction"
+    },
+    {
+      "id": "RSK-002",
+      "description": "Intrusive modal/overlay detection over-pruning legitimate page content or navigation",
+      "impact": "Critical loss of authentic article content and False Positives"
+    },
+    {
+      "id": "RSK-003",
+      "description": "Parser crash on malformed HTML input",
+      "impact": "Uncaught exception terminating scraper workflows"
+    },
+    {
+      "id": "RSK-004",
+      "description": "Performance overhead on default scraping when cleaner is disabled",
+      "impact": "Unacceptable regression in latency and throughput"
+    }
+  ],
+  "scenarios": [
+    {
+      "id": "SCN-001",
+      "risk_ids": [
+        "RSK-001"
+      ],
+      "name": "AdSense, scripts, and iframes removal",
+      "preconditions": "HTML fixture with Google AdSense, scripts, and iframes loaded",
+      "stimulus": "Call clean_html(raw_html)",
+      "oracle": "Ad scripts and ins tags removed; editorial paragraphs preserved",
+      "isolation": "Stateless unit test with local fixture",
+      "cleanup": "None required (pure memory function)"
+    },
+    {
+      "id": "SCN-002",
+      "risk_ids": [
+        "RSK-001"
+      ],
+      "name": "Recommendation widgets and CMP banners removal",
+      "preconditions": "HTML fixture with Taboola, Outbrain, RevContent, OneTrust, Cookiebot",
+      "stimulus": "Call clean_html(raw_html)",
+      "oracle": "Widgets and consent banners removed; main content preserved",
+      "isolation": "Stateless unit test with local fixture",
+      "cleanup": "None required"
+    },
+    {
+      "id": "SCN-003",
+      "risk_ids": [
+        "RSK-002"
+      ],
+      "name": "Conservative overlay filtering and modal preservation",
+      "preconditions": "HTML fixture containing intrusive fixed overlay, sticky header, and inline author modal",
+      "stimulus": "Call clean_html(raw_html)",
+      "oracle": "Intrusive fixed overlay removed; sticky header and author modal card preserved",
+      "isolation": "Stateless unit test with local fixture",
+      "cleanup": "None required"
+    },
+    {
+      "id": "SCN-004",
+      "risk_ids": [
+        "RSK-003"
+      ],
+      "name": "Graceful fallback on invalid or malformed HTML",
+      "preconditions": "Malformed or broken HTML input string",
+      "stimulus": "Call clean_html(malformed)",
+      "oracle": "Returns sanitized or original markup without raising unhandled exceptions",
+      "isolation": "Stateless unit test",
+      "cleanup": "None required"
+    },
+    {
+      "id": "SCN-005",
+      "risk_ids": [
+        "RSK-004"
+      ],
+      "name": "Zero-overhead byte-identical return when disabled",
+      "preconditions": "FoxcapeConfig(clean_html=False)",
+      "stimulus": "Call Foxcape.get() on ad-laden page",
+      "oracle": "Result.html matches raw page content byte-for-byte unmodified",
+      "isolation": "Mocked browser page context",
+      "cleanup": "None required"
+    }
+  ],
+  "boundaries": [
+    {
+      "name": "DOM Parser Engine",
+      "mode": "real",
+      "rationale": "Uses BeautifulSoup4 and lxml directly in-process for authentic DOM tree mutation"
+    },
+    {
+      "name": "Browser Automation Engine",
+      "mode": "simulated",
+      "rationale": "Mocked page content and cadence in unit tests for 100% deterministic offline execution in CI"
+    }
+  ],
+  "files_changed": [
+    "src/foxcape/cleaner/__init__.py",
+    "src/foxcape/cleaner/cleaner.py",
+    "src/foxcape/cleaner/rules.py",
+    "src/foxcape/config.py",
+    "src/foxcape/scraper.py",
+    "src/foxcape/async_scraper.py",
+    "src/foxcape/__init__.py",
+    "tests/test_cleaner.py"
+  ],
+  "commands": [
+    {
+      "command": "uv run pytest tests/test_cleaner.py -v",
+      "status": "passed",
+      "exit_code": 0,
+      "evidence": "17 passed in 0.72s with 99% coverage on cleaner module"
+    },
+    {
+      "command": "uv run pytest -m \"not live\"",
+      "status": "passed",
+      "exit_code": 0,
+      "evidence": "198 passed offline in 2.80s"
+    },
+    {
+      "command": "uv run ruff check src/ tests/",
+      "status": "passed",
+      "exit_code": 0,
+      "evidence": "All checks passed"
+    },
+    {
+      "command": "uv run mypy src/foxcape",
+      "status": "passed",
+      "exit_code": 0,
+      "evidence": "Success: no issues found in 20 source files"
+    }
+  ],
+  "evidence": [
+    {
+      "type": "coverage_report",
+      "summary": "src/foxcape/cleaner/ module achieved 99% line coverage with 124/125 statements executed"
+    },
+    {
+      "type": "mutation_sensitivity",
+      "summary": "Proved sensitivity against script stripping and overlay protective guards using prove_test_sensitivity.py"
+    },
+    {
+      "type": "performance_benchmark",
+      "summary": "Cleaner pipeline executed under 2ms per standard page, well within the 5ms target"
+    }
+  ],
+  "limitations": [
+    "Overlay removal heuristics operate on static DOM style attributes and classes without a live rendering engine viewport computation.",
+    "Dynamic client-side script reinjections occurring after initial scraper capture require active browser waiting."
+  ]
+}

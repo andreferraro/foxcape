@@ -72,3 +72,7 @@ raw/
 
 # Camoufox browser cache
 .camoufox/
+
+
+# VSCode
+FoxcapeLib.code-workspace

@@ -20,3 +20,24 @@ def test_live_sync_example_com() -> None:
     result = Foxcape.fetch("https://example.com", config=config, human_delay=False)
     assert result.status_code == 200
     assert "Example Domain" in (result.title or "")
+
+
+def test_live_sync_clean_html_pipeline() -> None:
+    """Verifies live real-browser scrape with clean_html=True."""
+    config = FoxcapeConfig(headless=True, humanize=False, simulate_mouse=False, human_delay_range=None, clean_html=True)
+    result = Foxcape.fetch("https://example.com", config=config, human_delay=False)
+    assert result.status_code == 200
+    assert "Example Domain" in (result.title or "")
+    assert "<html" in result.html.lower()
+
+
+@pytest.mark.asyncio
+async def test_live_async_clean_html_pipeline() -> None:
+    """Verifies live async real-browser scrape with per-call clean_html=True override."""
+    config = FoxcapeConfig(
+        headless=True, humanize=False, simulate_mouse=False, human_delay_range=None, clean_html=False
+    )
+    result = await AsyncFoxcape.afetch("https://example.com", config=config, human_delay=False, clean_html=True)
+    assert result.status_code == 200
+    assert "Example Domain" in (result.title or "")
+    assert "<html" in result.html.lower()

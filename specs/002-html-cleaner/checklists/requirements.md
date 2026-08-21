@@ -1,7 +1,7 @@
-# Specification Quality Checklist: Foxcape Initial Release
+# Specification Quality Checklist: Optional HTML Cleaner
 
 **Purpose**: Validate specification completeness and quality before proceeding to planning
-**Created**: 2026-08-19
+**Created**: 2026-08-21
 **Feature**: [spec.md](../spec.md)
 
 ## Content Quality
@@ -31,5 +31,6 @@
 
 ## Notes
 
-- Spec derived from ratified `docs/PLAN.md` and constitution v1.0.0.
-- Ready for `/speckit-plan`.
+- Items marked incomplete require spec updates before `/speckit-clarify` or `/speckit-plan`
+- FR-014/FR-015 preserve the project constitution's dependency boundary and Ponytail/YAGNI principle
+- FR-016 covers the graceful-degradation edge case identified during validation

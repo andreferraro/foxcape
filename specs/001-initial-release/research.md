@@ -1,6 +1,6 @@
 # Research: Foxcape Initial Release
 
-**Date**: 2026-08-19  
+**Date**: 2026-08-19
 **Feature**: 001-initial-release
 
 ## Decisions

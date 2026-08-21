@@ -8,6 +8,17 @@ Undetectable Python web scraping library — [Camoufox](https://camoufox.com/) s
 
 **Python** `>=3.10` · **License** MIT · **Import** `from foxcape import Foxcape, FoxcapeConfig, FoxcapeResult`
 
+<p align="center">
+
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=andreferraro_foxcape&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=andreferraro_foxcape)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=andreferraro_foxcape&metric=coverage)](https://sonarcloud.io/summary/new_code?id=andreferraro_foxcape)
+[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=andreferraro_foxcape&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=andreferraro_foxcape)
+[![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=andreferraro_foxcape&metric=reliability_rating)](https://sonarcloud.io/summary/new_code?id=andreferraro_foxcape)
+[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=andreferraro_foxcape&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=andreferraro_foxcape)
+[![Duplicated Lines (%)](https://sonarcloud.io/api/project_badges/measure?project=andreferraro_foxcape&metric=duplicated_lines_density)](https://sonarcloud.io/summary/new_code?id=andreferraro_foxcape)
+
+</p>
+
 ---
 
 ## Stealth roadmap
@@ -36,6 +47,7 @@ Foxcape is a library for developers who need to fetch web pages that block headl
 | **Networking** | HTTP/SOCKS proxies with round-robin, random, or sticky sessions |
 | **Persistence** | Disk-backed browser profiles with optional warmup sequences |
 | **Parsing** | `FoxcapeResult` — CSS selectors, clean text, markdown, structured links |
+| **Cleaning** | `clean_html` — optional stripping of AdSense, Outbrain, Taboola, RevContent, CMPs, overlays |
 
 Sync and async APIs share the same config and behavior. Low-level helpers (mouse paths, noise scripts, parsers) are exported for custom Playwright/Camoufox integrations.
 
@@ -50,7 +62,7 @@ Sync and async APIs share the same config and behavior. Low-level helpers (mouse
 - `fetch()` / `afetch()` — one-shot scrape without manual lifecycle
 - `evaluate()` / `aevaluate()` — run JavaScript in the live page
 - `type_human()` — fill forms with human-like keystroke timing and typos
-- Per-request overrides: `wait_until`, `timeout_ms`, `simulate_mouse`, `solve_turnstile`, `human_delay`
+- Per-request overrides: `wait_until`, `timeout_ms`, `simulate_mouse`, `solve_turnstile`, `human_delay`, `clean_html`
 
 ### Anti-fingerprint evasions (on by default)
 
@@ -112,6 +124,18 @@ result.extract_links()       # [{"text": "...", "href": "https://..."}, ...]
 ```
 
 Standalone parsers (no browser): `build_soup`, `extract_clean_text`, `extract_links_from_soup`, `dom_to_markdown_summary`.
+
+### HTML Cleaner (Optional)
+
+When `clean_html=True` is enabled in `FoxcapeConfig` or passed as a per-call override, Foxcape automatically strips advertising, recommendation widgets, CMP cookie banners, and intrusive overlays from the rendered DOM before returning `FoxcapeResult`:
+
+- **Ad Networks**: Google AdSense tags (`<ins>`), auto-ads, ad-containers, and ad network scripts/iframes (DoubleClick, GoogleSyndication).
+- **Widgets**: Outbrain, Taboola, and RevContent recommendations.
+- **CMPs & Consent Banners**: OneTrust, Cookiebot, Quantcast, and generic GDPR/LGPD banners.
+- **Overlays**: Conservative multi-criteria heuristic for intrusive full-screen fixed overlays while safely preserving headers and modals.
+- **Zero Overhead when disabled**: Preserves unmodified rendered DOM serialization without parsing when `clean_html=False` (the default).
+
+Standalone cleaner (no browser): `clean_html(html, parser_engine="lxml")` and `HTMLCleaner`.
 
 ### Exceptions
 
@@ -205,6 +229,26 @@ with Foxcape(FoxcapeConfig(headless=True)) as fox:
     token = fox.evaluate("document.querySelector('meta[name=csrf]')?.content")
 ```
 
+### Sanitizing HTML (removing ads & banners)
+
+```python
+from foxcape import Foxcape, FoxcapeConfig, clean_html
+
+# Option 1: Enable globally in config
+config = FoxcapeConfig(headless=True, clean_html=True)
+with Foxcape(config) as fox:
+    result = fox.get("https://news.example.com/article")
+    # Ads, widgets, and CMP banners are already stripped from result.html / result.soup
+    print(result.to_markdown())
+
+# Option 2: Override per call
+with Foxcape() as fox:
+    result = fox.get("https://news.example.com", clean_html=True)
+
+# Option 3: Standalone utility (no browser needed)
+sanitized_html = clean_html(raw_html, parser_engine="lxml")
+```
+
 ### Custom human behavior (advanced)
 
 Use exported helpers directly on any Playwright page:
@@ -249,6 +293,7 @@ All settings have sensible stealth defaults. Common options:
 | `wait_until` | `"domcontentloaded"` | Playwright navigation wait strategy |
 | `default_timeout_ms` | `30000` | Navigation and selector timeout |
 | `parser_engine` | `"lxml"` | BeautifulSoup parser (`"html.parser"` fallback) |
+| `clean_html` | `False` | Optional DOM sanitization (strips ads, widgets, CMPs, overlays) |
 
 Full field list: see `foxcape.config.FoxcapeConfig` docstring or [Architecture](docs/ARCHITECTURE.md).
 
@@ -268,7 +313,7 @@ Everything exported via `foxcape.__all__`:
 
 **Turnstile & typing:** `human_type`, `async_human_type`, `solve_turnstile_if_present`, `async_solve_turnstile_if_present`
 
-**Parsers:** `build_soup`, `extract_clean_text`, `extract_links_from_soup`, `dom_to_markdown_summary`
+**Parsers & Cleaner:** `build_soup`, `extract_clean_text`, `extract_links_from_soup`, `dom_to_markdown_summary`, `clean_html`, `HTMLCleaner`
 
 Playwright and Camoufox internals are intentionally **not** exported.
 
@@ -278,11 +323,11 @@ Playwright and Camoufox internals are intentionally **not** exported.
 
 ```bash
 make install          # uv sync --all-groups
-make check            # format + lint + mypy + offline pytest (181 tests)
+make check            # format + lint + mypy + offline pytest (199 tests)
 uv run pytest -m live # optional: 2 live tests; requires camoufox fetch + network
 ```
 
-Offline suite: **181 tests**, ~**99%** coverage on `src/foxcape/`. Live integration tests are excluded from CI and default pytest.
+Offline suite: **199 tests**, ~**99%** coverage on `src/foxcape/`. Live integration tests are excluded from CI and default pytest.
 
 Default branch: **`develop`**. See [GitFlow](docs/GITFLOW.md).
 

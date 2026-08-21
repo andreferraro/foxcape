@@ -4,6 +4,7 @@ Foxcape: undetectable web scraping powered by Camoufox, BeautifulSoup, and anti-
 
 from .async_scraper import AsyncFoxcape
 from .cadence import MarkovCadence
+from .cleaner import HTMLCleaner, clean_html
 from .config import FoxcapeConfig
 from .exceptions import BrowserStartupError, FoxcapeError
 from .hardware_spoofing import (
@@ -35,7 +36,7 @@ from .turnstile_and_typing import (
     solve_turnstile_if_present,
 )
 
-__version__ = "0.1.1"
+__version__ = "0.1.2"
 
 __all__ = [
     "FoxcapeConfig",
@@ -68,4 +69,6 @@ __all__ = [
     "extract_clean_text",
     "extract_links_from_soup",
     "dom_to_markdown_summary",
+    "clean_html",
+    "HTMLCleaner",
 ]

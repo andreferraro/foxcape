@@ -373,7 +373,7 @@ def test_custom_rules_extensibility():
 
 
 def test_cleaner_parser_engine_options_and_performance():
-    """SC-005: Verifies html.parser engine option and confirms latency < 50ms."""
+    """SC-005: Verifies html.parser engine option and confirms latency < 5ms."""
     sample_html = load_fixture("adsense.html")
 
     # Verify html.parser works
@@ -386,8 +386,39 @@ def test_cleaner_parser_engine_options_and_performance():
         clean_html(sample_html, parser_engine="lxml")
     elapsed = (time.perf_counter() - start) / 10
 
-    # Must take well under 20ms per page
-    assert elapsed < 0.02, f"Expected < 20ms, got {elapsed * 1000:.2f}ms"
+    # Must take well under 5ms per typical page
+    assert elapsed < 0.005, f"Expected < 5ms, got {elapsed * 1000:.2f}ms"
+
+
+def test_boundary_aware_matching_prevents_false_positives():
+    """Verifies that thread-container, download-slot, cookie-recipe and editorial ins are NOT removed."""
+    html_with_subnames = """
+    <html>
+        <body>
+            <div id="thread-container" class="thread-container">
+                <h2>Discussion Forum</h2>
+                <p>Welcome to the main thread.</p>
+                <div class="download-slot">
+                    <button>Download Report</button>
+                </div>
+                <div class="cookie-recipe-card">
+                    <p>Delicious chocolate chip cookie recipe instructions.</p>
+                </div>
+                <p>Editorial update: <ins>This is standard editorial inserted text.</ins></p>
+            </div>
+        </body>
+    </html>
+    """
+    cleaned = clean_html(html_with_subnames)
+
+    assert "thread-container" in cleaned
+    assert "Discussion Forum" in cleaned
+    assert "download-slot" in cleaned
+    assert "Download Report" in cleaned
+    assert "cookie-recipe-card" in cleaned
+    assert "Delicious chocolate chip cookie recipe instructions." in cleaned
+    assert "<ins>" in cleaned
+    assert "This is standard editorial inserted text." in cleaned
 
 
 def test_html_cleaner_clean_soup_direct_mutation():

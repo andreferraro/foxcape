@@ -12,12 +12,14 @@
 def clean_html(
     html: str,
     parser_engine: Literal["lxml", "html.parser"] = "lxml",
+    rules: CleanerRules | None = None,
 ) -> str:
     """Cleans rendered HTML markup by removing advertising, widgets, CMP banners, and overlays.
 
     Args:
         html: Raw HTML string to be cleaned.
         parser_engine: BeautifulSoup parser backend ("lxml" or "html.parser"). Defaults to "lxml".
+        rules: Optional custom CleanerRules instance. Defaults to DEFAULT_RULES.
 
     Returns:
         Cleaned, serialized HTML string. If parsing fails, returns the original input string.
@@ -32,8 +34,13 @@ def clean_html(
 class HTMLCleaner:
     """Modular DOM cleaning engine applying rule-based sanitization passes."""
 
-    def __init__(self, parser_engine: Literal["lxml", "html.parser"] = "lxml") -> None:
+    def __init__(
+        self,
+        parser_engine: Literal["lxml", "html.parser"] = "lxml",
+        rules: CleanerRules | None = None,
+    ) -> None:
         self.parser_engine = parser_engine
+        self.rules = rules or DEFAULT_RULES
 
     def clean(self, html: str) -> str:
         """Executes full cleaning pipeline on an HTML string."""
@@ -102,7 +109,7 @@ class AsyncFoxcape:
     ) -> FoxcapeResult: ...
 
     @classmethod
-    async def fetch(
+    async def afetch(
         cls,
         url: str,
         config: FoxcapeConfig | None = None,

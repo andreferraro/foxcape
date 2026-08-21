@@ -133,7 +133,7 @@ When `clean_html=True` is enabled in `FoxcapeConfig` or passed as a per-call ove
 - **Widgets**: Outbrain, Taboola, and RevContent recommendations.
 - **CMPs & Consent Banners**: OneTrust, Cookiebot, Quantcast, and generic GDPR/LGPD banners.
 - **Overlays**: Conservative multi-criteria heuristic for intrusive full-screen fixed overlays while safely preserving headers and modals.
-- **Zero Overhead when disabled**: 100% byte-identical raw HTML bypass when `clean_html=False` (the default).
+- **Zero Overhead when disabled**: Preserves unmodified rendered DOM serialization without parsing when `clean_html=False` (the default).
 
 Standalone cleaner (no browser): `clean_html(html, parser_engine="lxml")` and `HTMLCleaner`.
 

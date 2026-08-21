@@ -1,3 +1,4 @@
+import asyncio
 from typing import Any
 
 from camoufox.async_api import AsyncCamoufox
@@ -130,7 +131,7 @@ class AsyncFoxcape:
 
         should_clean = clean_html if clean_html is not None else self.config.clean_html
         if should_clean:
-            content = run_clean_html(content, parser_engine=self.config.parser_engine)
+            content = await asyncio.to_thread(run_clean_html, content, parser_engine=self.config.parser_engine)
 
         return FoxcapeResult.from_html(
             html=content,

@@ -4,6 +4,7 @@ Removes advertising, recommendation widgets, CMP cookie banners, and intrusive o
 """
 
 import logging
+import re
 from typing import Literal
 
 from bs4 import BeautifulSoup, Tag
@@ -72,19 +73,28 @@ class HTMLCleaner:
         return any(pattern.lower() in text_lower for pattern in patterns)
 
     def _tag_matches_class_or_id(self, tag: Tag, patterns: tuple[str, ...]) -> bool:
-        # Check tag ID
+        candidates: list[str] = []
         tag_id = tag.get("id")
-        if isinstance(tag_id, str) and self._matches_any_pattern(tag_id, patterns):
-            return True
+        if isinstance(tag_id, str):
+            candidates.append(tag_id.lower())
 
-        # Check tag classes
         tag_classes = tag.get("class")
         if isinstance(tag_classes, list):
-            class_str = " ".join(tag_classes)
-            if self._matches_any_pattern(class_str, patterns):
-                return True
-        elif isinstance(tag_classes, str) and self._matches_any_pattern(tag_classes, patterns):
-            return True
+            for cls_name in tag_classes:
+                if isinstance(cls_name, str):
+                    candidates.append(cls_name.lower())
+        elif isinstance(tag_classes, str):
+            candidates.extend(tag_classes.lower().split())
+
+        for item in candidates:
+            for pat in patterns:
+                pat_lower = pat.lower()
+                if "-" in pat_lower or "_" in pat_lower:
+                    if item == pat_lower or re.search(r"(?:^|[\s_])" + re.escape(pat_lower) + r"(?:$|[\s_])", item):
+                        return True
+                else:
+                    if item == pat_lower or re.search(r"(?:^|[\s])" + re.escape(pat_lower) + r"(?:$|[\s])", item):
+                        return True
 
         return False
 
@@ -108,15 +118,17 @@ class HTMLCleaner:
 
     def _remove_ad_components(self, soup: BeautifulSoup) -> None:
         """Stage 4: Remove AdSense tags and ad containers."""
-        # Target <ins class="adsbygoogle"> and ad elements
-        for tag_name in self.rules.ad_elements:
-            for el in soup.find_all(tag_name):
-                el.decompose()
-
         for el in soup.find_all(True):
             if el.decomposed:
                 continue
-            if self._tag_matches_class_or_id(el, self.rules.ad_classes_ids):
+
+            # Check <ins> or configured ad element tags
+            if el.name in self.rules.ad_elements:
+                has_ad_class = self._tag_matches_class_or_id(el, self.rules.ad_classes_ids)
+                has_ad_attrs = bool(el.get("data-ad-client") or el.get("data-ad-slot") or el.get("data-ad-format"))
+                if has_ad_class or has_ad_attrs:
+                    el.decompose()
+            elif self._tag_matches_class_or_id(el, self.rules.ad_classes_ids):
                 el.decompose()
 
     def _remove_widgets(self, soup: BeautifulSoup) -> None:
@@ -138,10 +150,12 @@ class HTMLCleaner:
     def _remove_conservative_overlays(self, soup: BeautifulSoup) -> None:
         """Stage 7: Conservatively identify and remove intrusive full-screen fixed overlays.
 
-        Requires BOTH:
-        1. Structural style signals (inline position: fixed/absolute + high z-index + large viewport dimensions)
+        Requires:
+        1. Structural style signals: inline position (fixed or absolute) AND high z-index.
         AND
-        2. Overlay class/ID/attribute markers OR full-viewport (100vw/100vh) coverage.
+        2. Viewport coverage:
+           - Both large width and large height (fullscreen takeover), OR
+           - Large width combined with an overlay/modal/interstitial marker.
         """
         for el in soup.find_all(True):
             if el.decomposed or el.name in ("html", "head", "body", "main", "article"):
@@ -153,11 +167,14 @@ class HTMLCleaner:
 
             has_fixed_pos = bool(RE_STYLE_FIXED_OR_ABSOLUTE.search(style))
             has_high_z = bool(RE_STYLE_HIGH_Z_INDEX.search(style))
-            has_large_dims = bool(RE_STYLE_LARGE_WIDTH.search(style) or RE_STYLE_LARGE_HEIGHT.search(style))
+            has_large_width = bool(RE_STYLE_LARGE_WIDTH.search(style))
+            has_large_height = bool(RE_STYLE_LARGE_HEIGHT.search(style))
             has_overlay_marker = self._tag_matches_class_or_id(el, self.rules.overlay_classes_ids)
 
-            # Conservative combination: must be fixed/absolute with high z-index AND (large dimensions or overlay marker)
-            if has_fixed_pos and has_high_z and (has_large_dims or has_overlay_marker):
+            is_fullscreen_takeover = has_large_width and has_large_height
+            is_marked_large_overlay = has_large_width and has_overlay_marker
+
+            if has_fixed_pos and has_high_z and (is_fullscreen_takeover or is_marked_large_overlay):
                 el.decompose()
 
 

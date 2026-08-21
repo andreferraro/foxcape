@@ -74,11 +74,11 @@ src/foxcape/
 tests/
 ├── test_cleaner.py       # [NEW] Unit & fixture tests for cleaner rules & pipeline
 └── fixtures/cleaner/     # [NEW] Offline HTML sample fixtures
-    ├── adsense_page.html
-    ├── taboola_outbrain_page.html
-    ├── consent_banner_page.html
-    ├── overlay_page.html
-    └── clean_article_page.html
+    ├── adsense.html
+    ├── taboola_outbrain.html
+    ├── cmp_consent.html
+    ├── overlay.html
+    └── clean_page.html
 ```
 
 **Structure Decision**: Single modular subpackage `src/foxcape/cleaner/` inside existing `src/foxcape/` layout.

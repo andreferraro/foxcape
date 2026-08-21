@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Page with Overlay and Legitimate Modal Header</title>
+    <style>
+        .site-header { position: sticky; top: 0; }
+    </style>
+</head>
+<body>
+    <header class="site-header">
+        <nav>
+            <a href="/">Home</a> | <a href="/about">About</a>
+        </nav>
+    </header>
+
+    <!-- Intrusive Fullscreen Fixed Overlay -->
+    <div id="newsletter-overlay" class="modal-overlay floating-interstitial" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 999999; background: rgba(0,0,0,0.8);">
+        <div class="overlay-content">
+            <h2>Subscribe to our daily newsletter!</h2>
+            <button>Close</button>
+        </div>
+    </div>
+
+    <!-- Legitimate inline modal / card that MUST NOT be removed -->
+    <div id="author-info-modal" class="author-modal-card">
+        <h3>About the Author</h3>
+        <p>Experienced systems engineer specializing in Python scraping performance.</p>
+    </div>
+
+    <main>
+        <h1>In-Depth Analysis of HTTP Fingerprinting</h1>
+        <p>HTTP fingerprinting involves identifying client characteristics across TLS handshakes and headers.</p>
+    </main>
+</body>
+</html>

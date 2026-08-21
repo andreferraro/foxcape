@@ -1,9 +1,9 @@
 # Foxcape — Stealth Roadmap
 
-**Version:** 1.0  
-**Status:** Active  
-**PyPI:** `foxcape`  
-**Baseline release:** v0.1.0 (initial PyPI publish)  
+**Version:** 1.0
+**Status:** Active
+**PyPI:** `foxcape`
+**Baseline release:** v0.1.0 (initial PyPI publish)
 **License:** MIT | **Python:** `>=3.10,<4.0`
 
 ---

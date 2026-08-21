@@ -1,6 +1,6 @@
 # Tasks: Foxcape Initial Release (v0.1.0)
 
-**Input**: Design documents from `/specs/001-initial-release/`  
+**Input**: Design documents from `/specs/001-initial-release/`
 **Prerequisites**: plan.md, spec.md, research.md, data-model.md, contracts/public-api.md, quickstart.md
 
 **Tests**: Included per spec FR-010 and constitution II (offline CI).

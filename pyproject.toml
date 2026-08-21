@@ -1,6 +1,6 @@
 [project]
 name = "foxcape"
-version = "0.1.1"
+version = "0.1.2"
 description = "Undetectable web scraping powered by Camoufox, BeautifulSoup and anti-bot evasions"
 readme = "README.md"
 license = "MIT"

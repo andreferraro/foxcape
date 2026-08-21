@@ -421,6 +421,29 @@ def test_boundary_aware_matching_prevents_false_positives():
     assert "This is standard editorial inserted text." in cleaned
 
 
+def test_overlay_css_property_anchoring_excludes_max_width_and_line_height():
+    """Verifies max-width and line-height do not trigger width/height overlay heuristics."""
+    html_with_max_props = """
+    <html>
+        <body>
+            <!-- Fixed container with max-width and line-height but small actual footprint -->
+            <div id="quick-toolbar" style="position: fixed; z-index: 100; max-width: 90vw; line-height: 100%;">
+                <button>Action</button>
+            </div>
+            <!-- Legitimate overlay with actual width: 95vw and height: 60vh -->
+            <div id="real-overlay" class="overlay" style="position: fixed; z-index: 100; width: 95vw; height: 60vh;">
+                <p>Intrusive Overlay</p>
+            </div>
+        </body>
+    </html>
+    """
+    cleaned = clean_html(html_with_max_props)
+    assert "quick-toolbar" in cleaned
+    assert "<button>Action</button>" in cleaned
+    assert "real-overlay" not in cleaned
+    assert "Intrusive Overlay" not in cleaned
+
+
 def test_html_cleaner_clean_soup_direct_mutation():
     """Verifies HTMLCleaner.clean_soup directly mutates BeautifulSoup instance."""
     cleaner = HTMLCleaner()

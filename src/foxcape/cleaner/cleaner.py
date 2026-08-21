@@ -12,7 +12,8 @@ from .rules import (
     DEFAULT_RULES,
     RE_STYLE_FIXED_OR_ABSOLUTE,
     RE_STYLE_HIGH_Z_INDEX,
-    RE_STYLE_LARGE_DIMENSIONS,
+    RE_STYLE_LARGE_HEIGHT,
+    RE_STYLE_LARGE_WIDTH,
     CleanerRules,
 )
 
@@ -152,7 +153,7 @@ class HTMLCleaner:
 
             has_fixed_pos = bool(RE_STYLE_FIXED_OR_ABSOLUTE.search(style))
             has_high_z = bool(RE_STYLE_HIGH_Z_INDEX.search(style))
-            has_large_dims = bool(RE_STYLE_LARGE_DIMENSIONS.search(style))
+            has_large_dims = bool(RE_STYLE_LARGE_WIDTH.search(style) or RE_STYLE_LARGE_HEIGHT.search(style))
             has_overlay_marker = self._tag_matches_class_or_id(el, self.rules.overlay_classes_ids)
 
             # Conservative combination: must be fixed/absolute with high z-index AND (large dimensions or overlay marker)

@@ -1,7 +1,7 @@
 # Release Gate Checklist: Foxcape v0.1.0
 
-**Purpose**: Requirements-quality validation before `/speckit-implement` and release  
-**Created**: 2026-08-19  
+**Purpose**: Requirements-quality validation before `/speckit-implement` and release
+**Created**: 2026-08-19
 **Feature**: [spec.md](../spec.md)
 
 ## Public API requirements

@@ -8,6 +8,7 @@ from .camoufox_launch import (
     build_camoufox_kwargs,
     inject_async_page_evasions,
 )
+from .cleaner import clean_html as run_clean_html
 from .config import FoxcapeConfig
 from .exceptions import BrowserStartupError
 from .models import FoxcapeResult
@@ -95,6 +96,7 @@ class AsyncFoxcape:
         simulate_mouse: bool | None = None,
         solve_turnstile: bool | None = None,
         human_delay: bool = True,
+        clean_html: bool | None = None,
     ) -> FoxcapeResult:
         if self.browser is None or self._page is None:
             await self.start()
@@ -126,6 +128,10 @@ class AsyncFoxcape:
         content = await self._page.content()
         final_url = self._page.url
 
+        should_clean = clean_html if clean_html is not None else self.config.clean_html
+        if should_clean:
+            content = run_clean_html(content, parser_engine=self.config.parser_engine)
+
         return FoxcapeResult.from_html(
             html=content,
             url=final_url,
@@ -144,6 +150,7 @@ class AsyncFoxcape:
         simulate_mouse: bool | None = None,
         solve_turnstile: bool | None = None,
         human_delay: bool = True,
+        clean_html: bool | None = None,
     ) -> FoxcapeResult:
         async with cls(config=config) as scraper:
             return await scraper.get(
@@ -154,4 +161,5 @@ class AsyncFoxcape:
                 simulate_mouse=simulate_mouse,
                 solve_turnstile=solve_turnstile,
                 human_delay=human_delay,
+                clean_html=clean_html,
             )

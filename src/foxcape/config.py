@@ -40,3 +40,4 @@ class FoxcapeConfig:
     default_timeout_ms: int = 30000
     human_delay_range: tuple[float, float] = (0.5, 2.0)
     parser_engine: Literal["lxml", "html.parser"] = "lxml"
+    clean_html: bool = False

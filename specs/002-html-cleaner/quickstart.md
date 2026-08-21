@@ -1,8 +1,8 @@
 # Quickstart: Testing & Validating the HTML Cleaner
 
-**Feature**: Optional HTML Cleaner (`specs/002-html-cleaner/spec.md`)  
-**Status**: Ready  
-**Date**: 2026-08-21  
+**Feature**: Optional HTML Cleaner (`specs/002-html-cleaner/spec.md`)
+**Status**: Ready
+**Date**: 2026-08-21
 
 ---
 
@@ -54,7 +54,7 @@ from foxcape import Foxcape
 with Foxcape() as scraper:
     # Uncleaned by default:
     raw_result = scraper.get("https://news-site.example.com")
-    
+
     # Cleaned on demand:
     clean_result = scraper.get("https://news-site.example.com", clean_html=True)
 ```

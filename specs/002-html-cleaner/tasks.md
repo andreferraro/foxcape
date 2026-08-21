@@ -1,8 +1,8 @@
 # Implementation Tasks: Optional HTML Cleaner
 
-**Feature**: Optional HTML Cleaner (`specs/002-html-cleaner/spec.md`)  
-**Branch**: `002-html-cleaner` | **Date**: 2026-08-21  
-**Status**: Ready for Implementation  
+**Feature**: Optional HTML Cleaner (`specs/002-html-cleaner/spec.md`)
+**Branch**: `002-html-cleaner` | **Date**: 2026-08-21
+**Status**: Ready for Implementation
 
 ---
 

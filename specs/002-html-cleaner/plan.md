@@ -14,15 +14,15 @@ Add an optional HTML cleaning module (`foxcape.cleaner`) to Foxcape. When `clean
 
 ## Technical Context
 
-**Language/Version**: Python >= 3.10  
-**Primary Dependencies**: `beautifulsoup4`, `lxml`, `camoufox[geoip]` (existing runtime dependencies, NO new dependencies added)  
-**Storage**: N/A (in-memory DOM transformation)  
-**Testing**: `pytest`, `pytest-cov`, `pytest-asyncio`, `hypothesis`  
-**Target Platform**: Linux, macOS, Windows  
-**Project Type**: Python Library  
-**Performance Goals**: < 5ms processing time per typical web page DOM  
-**Constraints**: Zero new runtime dependencies, 100% deterministic offline test execution (`pytest -m "not live"`), zero overhead when disabled  
-**Scale/Scope**: Modular rules catalog in `src/foxcape/cleaner/rules.py` and engine in `src/foxcape/cleaner/cleaner.py`  
+**Language/Version**: Python >= 3.10
+**Primary Dependencies**: `beautifulsoup4`, `lxml`, `camoufox[geoip]` (existing runtime dependencies, NO new dependencies added)
+**Storage**: N/A (in-memory DOM transformation)
+**Testing**: `pytest`, `pytest-cov`, `pytest-asyncio`, `hypothesis`
+**Target Platform**: Linux, macOS, Windows
+**Project Type**: Python Library
+**Performance Goals**: < 5ms processing time per typical web page DOM
+**Constraints**: Zero new runtime dependencies, 100% deterministic offline test execution (`pytest -m "not live"`), zero overhead when disabled
+**Scale/Scope**: Modular rules catalog in `src/foxcape/cleaner/rules.py` and engine in `src/foxcape/cleaner/cleaner.py`
 
 ---
 

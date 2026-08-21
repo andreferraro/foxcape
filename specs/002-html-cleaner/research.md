@@ -1,8 +1,8 @@
 # Research: Optional HTML Cleaner
 
-**Feature**: Optional HTML Cleaner for Foxcape (`specs/002-html-cleaner/spec.md`)  
-**Status**: Complete  
-**Date**: 2026-08-21  
+**Feature**: Optional HTML Cleaner for Foxcape (`specs/002-html-cleaner/spec.md`)
+**Status**: Complete
+**Date**: 2026-08-21
 
 ---
 

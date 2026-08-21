@@ -143,7 +143,7 @@ RE_STYLE_HIGH_Z_INDEX = re.compile(r"(?:^|;)\s*z-index\s*:\s*([1-9]\d{2,}|9999+)
 RE_STYLE_LARGE_WIDTH = re.compile(r"(?:^|;)\s*width\s*:\s*(100|[7-9]\d)(%|vw)", re.IGNORECASE)
 RE_STYLE_LARGE_HEIGHT = re.compile(r"(?:^|;)\s*height\s*:\s*(100|[3-9]\d)(%|vh)", re.IGNORECASE)
 RE_STYLE_LARGE_DIMENSIONS = re.compile(
-    r"(?:^|;)\s*(?:width\s*:\s*(100|[7-9]\d)(%|vw)|height\s*:\s*(100|[3-9]\d)(%|vh))",
+    r"(?:^|;)\s*(?:width|height)\s*:\s*(100|\d{2})(%|vw|vh)",
     re.IGNORECASE,
 )
 

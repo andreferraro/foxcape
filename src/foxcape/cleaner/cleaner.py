@@ -21,6 +21,30 @@ from .rules import (
 logger = logging.getLogger(__name__)
 
 
+def _extract_tag_identifiers(tag: Tag) -> list[str]:
+    candidates: list[str] = []
+    tag_id = tag.get("id")
+    if isinstance(tag_id, str):
+        candidates.append(tag_id.lower())
+
+    tag_classes = tag.get("class")
+    if isinstance(tag_classes, list):
+        for cls_name in tag_classes:
+            if isinstance(cls_name, str):
+                candidates.append(cls_name.lower())
+    elif isinstance(tag_classes, str):
+        candidates.extend(tag_classes.lower().split())
+
+    return candidates
+
+
+def _item_matches_pattern(item: str, pat: str) -> bool:
+    pat_lower = pat.lower()
+    if "-" in pat_lower or "_" in pat_lower:
+        return item == pat_lower or bool(re.search(r"(?:^|[\s_])" + re.escape(pat_lower) + r"(?:$|[\s_])", item))
+    return item == pat_lower or bool(re.search(r"(?:^|[\s])" + re.escape(pat_lower) + r"(?:$|[\s])", item))
+
+
 class HTMLCleaner:
     """Modular DOM cleaning engine applying rule-based sanitization passes."""
 
@@ -73,30 +97,8 @@ class HTMLCleaner:
         return any(pattern.lower() in text_lower for pattern in patterns)
 
     def _tag_matches_class_or_id(self, tag: Tag, patterns: tuple[str, ...]) -> bool:
-        candidates: list[str] = []
-        tag_id = tag.get("id")
-        if isinstance(tag_id, str):
-            candidates.append(tag_id.lower())
-
-        tag_classes = tag.get("class")
-        if isinstance(tag_classes, list):
-            for cls_name in tag_classes:
-                if isinstance(cls_name, str):
-                    candidates.append(cls_name.lower())
-        elif isinstance(tag_classes, str):
-            candidates.extend(tag_classes.lower().split())
-
-        for item in candidates:
-            for pat in patterns:
-                pat_lower = pat.lower()
-                if "-" in pat_lower or "_" in pat_lower:
-                    if item == pat_lower or re.search(r"(?:^|[\s_])" + re.escape(pat_lower) + r"(?:$|[\s_])", item):
-                        return True
-                else:
-                    if item == pat_lower or re.search(r"(?:^|[\s])" + re.escape(pat_lower) + r"(?:$|[\s])", item):
-                        return True
-
-        return False
+        candidates = _extract_tag_identifiers(tag)
+        return any(_item_matches_pattern(item, pat) for item in candidates for pat in patterns)
 
     def _remove_scripts(self, soup: BeautifulSoup) -> None:
         """Stage 2: Remove known advertising, widget, and CMP scripts."""

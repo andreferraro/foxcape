@@ -49,7 +49,7 @@ pre-commit:
 	cd "$(ROOT)" && $(UV) run pre-commit run --all-files
 
 build:
-	cd "$(ROOT)" && $(UV) run python -m build
+	cd "$(ROOT)" && $(UV) build
 
 clean:
 	cd "$(ROOT)" && rm -rf build dist .pytest_cache .mypy_cache .ruff_cache htmlcov .coverage

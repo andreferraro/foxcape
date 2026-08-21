@@ -37,6 +37,7 @@ foxcape/
 | `hardware_spoofing.py` | WebRTC, deviceMemory, permissions consistency |
 | `turnstile_and_typing.py` | Cloudflare Turnstile + biometric typing |
 | `parsers.py` | BeautifulSoup / lxml extraction |
+| `cleaner/` (`cleaner.py`, `rules.py`) | Optional DOM sanitization (AdSense, Outbrain, Taboola, CMPs, overlays) |
 | `profiles.py` | Persistent browser profiles + warmup |
 | `proxy_pool.py` | Round-robin / random / sticky proxy pool |
 | `rng.py` | Non-cryptographic randomness for human-like behavior |
@@ -47,10 +48,10 @@ foxcape/
 Defined exclusively by `foxcape.__all__`. Playwright/Camoufox internals are **not** exported.
 
 ```python
-from foxcape import Foxcape, FoxcapeConfig, FoxcapeResult
+from foxcape import Foxcape, FoxcapeConfig, FoxcapeResult, clean_html, HTMLCleaner
 ```
 
-See [specs/001-initial-release/contracts/public-api.md](../specs/001-initial-release/contracts/public-api.md).
+See [specs/001-initial-release/contracts/public-api.md](../specs/001-initial-release/contracts/public-api.md) and [specs/002-html-cleaner/contracts/cleaner-api.md](../specs/002-html-cleaner/contracts/cleaner-api.md).
 
 ## Runtime dependencies
 
@@ -73,7 +74,7 @@ See [specs/001-initial-release/contracts/public-api.md](../specs/001-initial-rel
 
 ## Test suite (offline)
 
-181 offline tests + 2 live integration tests (`test_integration.py`). Coverage ~99% on `src/foxcape/` (see `specs/001-initial-release/test-evidence.json`).
+199 offline tests + 2 live integration tests (`test_integration.py`). Coverage ~99% on `src/foxcape/` (see `specs/002-html-cleaner/test-evidence.json`).
 
 Categories: unit (parsers, proxy, cadence), mocked integration (sync/async scraper, turnstile, profiles), contract/smoke, Hypothesis property tests (`test_humanizer_properties.py`).
 

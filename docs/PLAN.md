@@ -1,9 +1,9 @@
 # Foxcape — Master Plan
 
-**Version:** 1.3  
-**PyPI:** `foxcape`  
-**GitHub:** https://github.com/andreferraro/foxcape  
-**Import:** `from foxcape import Foxcape, FoxcapeConfig, FoxcapeResult`  
+**Version:** 1.3
+**PyPI:** `foxcape`
+**GitHub:** https://github.com/andreferraro/foxcape
+**Import:** `from foxcape import Foxcape, FoxcapeConfig, FoxcapeResult`
 **License:** MIT | **Python:** `>=3.10,<4.0`
 
 ---
@@ -28,7 +28,7 @@
 | **Tests** | `tests/` (see section 12) |
 | **Git remote** | `https://github.com/andreferraro/foxcape.git` |
 
-**Current state:** library lives under `src/foxcape/` with the Foxcape public API. Offline test suite (**181 tests**, ~99% coverage) green via `make check`. Live integration tests (2) pass with `pytest -m live` after `camoufox fetch`. Publish workflow file ready; PyPI Trusted Publisher and release tag pending manual steps.  
+**Current state:** library lives under `src/foxcape/` with the Foxcape public API. Offline test suite (**181 tests**, ~99% coverage) green via `make check`. Live integration tests (2) pass with `pytest -m live` after `camoufox fetch`. Publish workflow file ready; PyPI Trusted Publisher and release tag pending manual steps.
 **Remaining work:** PyPI Trusted Publisher (T026), GitFlow release tag `v0.1.0` (T028), reviewer sign-off on `release-gate.md` (T030).
 
 **Initial prompt (new Cursor instance in this folder):**

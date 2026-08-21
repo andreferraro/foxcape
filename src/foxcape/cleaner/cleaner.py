@@ -50,11 +50,11 @@ class HTMLCleaner:
 
     def __init__(
         self,
-        rules: CleanerRules | None = None,
         parser_engine: Literal["lxml", "html.parser"] = "lxml",
+        rules: CleanerRules | None = None,
     ) -> None:
-        self.rules = rules or DEFAULT_RULES
         self.parser_engine = parser_engine
+        self.rules = rules or DEFAULT_RULES
 
     def clean(self, html: str) -> str:
         """Executes the full 8-step cleaning pipeline on an HTML string.
